@@ -1,0 +1,41 @@
+# Web Framework
+fastapi
+uvicorn
+python-multipart
+
+# LangGraph (investigation + chat graphs)
+langgraph
+
+# Data Processing
+pandas
+numpy
+chardet
+
+# LLM (OpenAI-compatible client, used for both vLLM and mock modes)
+openai
+
+# Governance Pack - PII detection
+presidio-analyzer
+presidio-anonymizer
+spacy
+# After install, fetch the spaCy model used by Presidio:
+#   python -m spacy download en_core_web_sm
+
+# Governance Pack - Compliance RAG
+chromadb
+sentence-transformers
+
+# Utilities
+python-dotenv
+pydantic
+httpx
+
+# Testing
+pytest
+pytest-asyncio
+pytest-mock
+locust
+
+# Type Checking
+mypy
+types-chardet

@@ -1,0 +1,515 @@
+/* Aegis - Governance/Audit pack styles (extends style.css's theme variables) */
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-link {
+    text-decoration: none;
+}
+
+/* Upload extras */
+.demo-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.demo-divider::before,
+.demo-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+    border: none;
+    border-radius: var(--radius-full);
+    color: white;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+}
+
+.primary-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+}
+
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Progress view */
+.progress-view {
+    padding-top: 2rem;
+}
+
+.progress-container {
+    width: 100%;
+    max-width: 640px;
+    text-align: center;
+}
+
+.progress-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.progress-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+}
+
+.progress-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    opacity: 0.5;
+    transition: var(--transition);
+}
+
+.step.active {
+    opacity: 1;
+    border-color: var(--border-focus);
+    box-shadow: var(--shadow-glow);
+}
+
+.step.done {
+    opacity: 1;
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0a0a0f;
+}
+
+.step.active .step-icon {
+    border-color: var(--primary-start);
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.step.done .step-icon {
+    border-color: #4ade80;
+    background: #4ade80;
+}
+
+.step.done .step-icon::after {
+    content: "\2713";
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(102, 126, 234, 0); }
+}
+
+.step-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.step-name {
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.step-message {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+/* Results view */
+.results-view {
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+.results-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.metrics-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.metric-label {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.results-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.tab-btn.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--primary-start);
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-panel {
+    animation: fadeIn 0.3s ease;
+    padding-bottom: 3rem;
+}
+
+/* Dashboard cards */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.dashboard-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.dashboard-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.8125rem;
+}
+
+.bar-label {
+    width: 130px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    text-transform: capitalize;
+}
+
+.bar-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.6s ease;
+}
+
+.bar-count {
+    width: 60px;
+    text-align: right;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.severity-low .bar-fill { background: #4ade80; }
+.severity-medium .bar-fill { background: #facc15; }
+.severity-high .bar-fill { background: #fb923c; }
+.severity-critical .bar-fill { background: #f87171; }
+
+.category-pii .bar-fill { background: #60a5fa; }
+.category-security .bar-fill { background: #f87171; }
+.category-compliance .bar-fill { background: #facc15; }
+.category-hallucination .bar-fill { background: #a78bfa; }
+
+.severity-badge {
+    display: inline-flex;
+    padding: 0.125rem 0.625rem;
+    border-radius: var(--radius-full);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-low { background: #4ade80; color: #0a0a0f; }
+.badge-medium { background: #facc15; color: #0a0a0f; }
+.badge-high { background: #fb923c; color: #0a0a0f; }
+.badge-critical { background: #f87171; color: #0a0a0f; }
+
+.overall-score {
+    text-align: center;
+}
+
+.overall-score .score-value {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.overall-score .score-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Top findings table */
+.findings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.findings-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.findings-table td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.findings-table tr:last-child td {
+    border-bottom: none;
+}
+
+.findings-table .log-link {
+    color: var(--primary-start);
+    cursor: pointer;
+    font-weight: 600;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
+}
+
+.findings-table .log-link:hover {
+    text-decoration: underline;
+}
+
+.contributor-chip {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    margin: 0.0625rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-full);
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+}
+
+.empty-note {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Report */
+.report-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.report-tab-btn {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.report-tab-btn.active {
+    background: rgba(102, 126, 234, 0.15);
+    border-color: var(--primary-start);
+    color: var(--text-primary);
+}
+
+.report-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    line-height: 1.7;
+    backdrop-filter: blur(10px);
+}
+
+.report-content h1,
+.report-content h2,
+.report-content h3 {
+    margin: 1.25rem 0 0.75rem;
+}
+
+.report-content h1:first-child,
+.report-content h2:first-child {
+    margin-top: 0;
+}
+
+.report-content p {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.report-content ul {
+    margin: 0 0 0.75rem 1.25rem;
+    color: var(--text-secondary);
+}
+
+.report-content li {
+    margin-bottom: 0.25rem;
+}
+
+.report-content code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.875em;
+}
+
+.report-content strong {
+    color: var(--text-primary);
+}
+
+/* Chat tab reuses .messages/.message/etc from style.css */
+.chat-tab-container {
+    display: flex;
+    flex-direction: column;
+    height: 65vh;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.chat-tab-container .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.evidence-panel {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.evidence-panel pre {
+    margin-top: 0.5rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.tool-badges {
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .bar-label {
+        width: 90px;
+    }
+
+    .findings-table {
+        font-size: 0.75rem;
+    }
+}

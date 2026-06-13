@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis - Agentic AI Governance &amp; Audit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="aegis.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Background Effects -->
+        <div class="gradient-bg">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M20 4l14 5v9c0 9-6 16-14 18C12 34 6 27 6 18V9l14-5z" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M14 19.5l4.5 4.5L27 15" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <span class="brand-text">Aegis</span>
+            </div>
+            <div class="nav-actions">
+                <a class="nav-btn nav-link" href="survey.html">Survey Analytics demo</a>
+                <button id="new-run-btn" class="nav-btn" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Investigation
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Upload View -->
+            <section id="upload-view" class="view upload-view">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h1 class="title">Audit Your AI Interaction Logs</h1>
+                        <p class="subtitle">Aegis triages every entry for PII, then dynamically routes flagged entries to specialist agents for security, compliance, and hallucination review.</p>
+                    </div>
+
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" id="file-input" accept=".csv,.json" hidden>
+                        <div class="upload-content">
+                            <div class="upload-icon-large">
+                                <svg viewBox="0 0 80 80" fill="none">
+                                    <defs>
+                                        <linearGradient id="uploadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3"/>
+                                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.3"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle cx="40" cy="40" r="38" fill="url(#uploadGrad)"/>
+                                    <path d="M40 24v32M24 40h32" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h3 class="upload-title">Drop your log batch here</h3>
+                            <p class="upload-text">CSV or JSON &middot; or <span class="upload-link">click to browse</span></p>
+                            <div class="upload-specs">
+                                <span class="spec">log_id, timestamp, user_prompt, ai_response</span>
+                                <span class="spec-dot"></span>
+                                <span class="spec">optional retrieved_context</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-divider"><span>or</span></div>
+                    <button id="demo-btn" class="primary-btn">Load Demo Dataset</button>
+
+                    <div id="upload-error" class="error-toast" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 6v5M10 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress View -->
+            <section id="progress-view" class="view progress-view" style="display: none;">
+                <div class="progress-container">
+                    <h2 class="progress-title">Investigation in progress&hellip;</h2>
+                    <p class="progress-subtitle">Analyzing <strong id="progress-filename"></strong> &middot; <span id="progress-rowcount"></span> entries</p>
+
+                    <ul class="progress-steps" id="progress-steps">
+                        <li class="step" data-step="triage">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Triage</span>
+                                <span class="step-message" data-default="Scanning every entry for PII &amp; heuristic flags&hellip;">Scanning every entry for PII &amp; heuristic flags&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="orchestrator">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Orchestrator</span>
+                                <span class="step-message" data-default="Planning specialist dispatch for flagged entries&hellip;">Planning specialist dispatch for flagged entries&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="specialist_dispatch">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Specialist Agents</span>
+                                <span class="step-message" data-default="Running security, compliance &amp; hallucination reviews&hellip;">Running security, compliance &amp; hallucination reviews&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="risk_scoring">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Risk Scoring</span>
+                                <span class="step-message" data-default="Aggregating findings into per-entry risk scores&hellip;">Aggregating findings into per-entry risk scores&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="dashboard">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Dashboard</span>
+                                <span class="step-message" data-default="Building risk distribution &amp; efficiency summary&hellip;">Building risk distribution &amp; efficiency summary&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="report">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Report</span>
+                                <span class="step-message" data-default="Authoring audit report sections&hellip;">Authoring audit report sections&hellip;</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div id="progress-error" class="error-toast" style="display: none;"></div>
+                </div>
+            </section>
+
+            <!-- Results View -->
+            <section id="results-view" class="view results-view" style="display: none;">
+                <div class="results-container">
+                    <div class="metrics-strip" id="metrics-strip"></div>
+
+                    <div class="results-tabs">
+                        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                        <button class="tab-btn" data-tab="report">Report</button>
+                        <button class="tab-btn" data-tab="chat">Chat</button>
+                    </div>
+
+                    <div class="tab-panel" id="tab-dashboard"></div>
+
+                    <div class="tab-panel" id="tab-report" style="display: none;">
+                        <div class="report-tabs" id="report-tabs"></div>
+                        <div class="report-content" id="report-content"></div>
+                    </div>
+
+                    <div class="tab-panel" id="tab-chat" style="display: none;">
+                        <div class="chat-tab-container">
+                            <div id="chat-messages" class="messages"></div>
+                            <div class="input-container">
+                                <div class="input-box">
+                                    <textarea
+                                        id="chat-input"
+                                        class="message-input"
+                                        placeholder="Ask about these findings..."
+                                        rows="1"
+                                    ></textarea>
+                                    <button id="chat-send-btn" class="send-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="input-hint">Press Enter to send &middot; Shift+Enter for new line</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-card">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <p class="loading-text" id="loading-text">Processing...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="aegis.js"></script>
+</body>
+</html>

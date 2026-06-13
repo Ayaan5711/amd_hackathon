@@ -1,0 +1,15 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+logs/*.log
+
+# ChromaDB persistence (compliance RAG index, rebuilt on startup)
+app/data/chroma/

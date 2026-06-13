@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseIQ - Agentic Survey Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Background Effects -->
+        <div class="gradient-bg">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="20" cy="20" r="18" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                        <path d="M12 20c0-4.4 3.6-8 8-8" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="4" fill="url(#logoGrad)"/>
+                    </svg>
+                </div>
+                <span class="brand-text">PulseIQ</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <a class="nav-btn" style="text-decoration: none;" href="index.html">&larr; Aegis Governance</a>
+                <button id="new-session-btn" class="nav-btn" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Analysis
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Upload View -->
+            <section id="upload-view" class="view upload-view">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h1 class="title">Analyze Your Survey Data</h1>
+                        <p class="subtitle">Upload a CSV file and let AI uncover insights, trends, and recommendations</p>
+                    </div>
+
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" id="file-input" accept=".csv" hidden>
+                        <div class="upload-content">
+                            <div class="upload-icon-large">
+                                <svg viewBox="0 0 80 80" fill="none">
+                                    <defs>
+                                        <linearGradient id="uploadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3"/>
+                                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.3"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle cx="40" cy="40" r="38" fill="url(#uploadGrad)"/>
+                                    <path d="M40 24v32M24 40h32" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h3 class="upload-title">Drop your CSV file here</h3>
+                            <p class="upload-text">or <span class="upload-link">click to browse</span></p>
+                            <div class="upload-specs">
+                                <span class="spec">UTF-8 format</span>
+                                <span class="spec-dot"></span>
+                                <span class="spec">Up to 50MB</span>
+                                <span class="spec-dot"></span>
+                                <span class="spec">50K rows max</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="upload-error" class="error-toast" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 6v5M10 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat View -->
+            <section id="chat-view" class="view chat-view" style="display: none;">
+                <!-- Data Badge -->
+                <div class="data-badge">
+                    <div class="file-info">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M9 2H5a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6l-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 2v4h4M10 11H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span id="data-filename" class="filename"></span>
+                    </div>
+                    <div class="data-stats" id="data-stats"></div>
+                </div>
+
+                <!-- Chat Container -->
+                <div class="chat-container">
+                    <div id="messages" class="messages">
+                        <!-- Welcome Card -->
+                        <div class="welcome-card">
+                            <div class="welcome-icon">
+                                <svg viewBox="0 0 48 48" fill="none">
+                                    <defs>
+                                        <linearGradient id="welcomeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#667eea"/>
+                                            <stop offset="100%" style="stop-color:#764ba2"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle cx="24" cy="24" r="22" fill="url(#welcomeGrad)" fill-opacity="0.1"/>
+                                    <path d="M24 14v20M14 24h20" stroke="url(#welcomeGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h2 class="welcome-title">Ready to analyze</h2>
+                            <p class="welcome-text">Your survey data has been processed. Ask me anything about it.</p>
+                        </div>
+
+                        <!-- Suggestion Chips -->
+                        <div class="suggestion-chips">
+                            <button class="chip" data-query="Which department has the highest satisfaction?">
+                                <span class="chip-icon"></span>
+                                Compare departments
+                            </button>
+                            <button class="chip" data-query="Show me NPS trends by quarter">
+                                <span class="chip-icon"></span>
+                                View trends
+                            </button>
+                            <button class="chip" data-query="What are the main themes in comments?">
+                                <span class="chip-icon"></span>
+                                Extract themes
+                            </button>
+                            <button class="chip" data-query="Are there any outliers in the data?">
+                                <span class="chip-icon"></span>
+                                Find anomalies
+                            </button>
+                            <button class="chip" data-query="What actions should we take?">
+                                <span class="chip-icon"></span>
+                                Get recommendations
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="input-container">
+                        <div class="input-box">
+                            <textarea
+                                id="message-input"
+                                class="message-input"
+                                placeholder="Ask about your survey data..."
+                                rows="1"
+                            ></textarea>
+                            <button id="send-btn" class="send-btn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-card">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <p class="loading-text" id="loading-text">Processing your data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

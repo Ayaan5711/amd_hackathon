@@ -1,0 +1,21 @@
+Employee_ID,Department,Quarter,Satisfaction_Score,NPS,Engagement_Score,Comments,Manager_Rating,Years_At_Company
+EMP001,Sales,Q1,4,8,3,Great team environment but tools could be better,4,2
+EMP002,Marketing,Q1,5,9,4,Love the creative freedom and support,5,3
+EMP003,Sales,Q1,3,6,2,High pressure targets are stressful,3,1
+EMP004,Engineering,Q1,4,8,4,Good technical challenges and mentorship,4,4
+EMP005,HR,Q1,4,7,3,Meaningful work but workload is high,4,5
+EMP006,Sales,Q2,4,8,3,Quarterly targets are achievable,4,2
+EMP007,Marketing,Q2,5,9,4,Campaign results have been excellent,5,3
+EMP008,Engineering,Q2,5,9,4,New project is exciting,5,4
+EMP009,HR,Q2,4,8,3,Improved processes are helping,4,5
+EMP010,Sales,Q2,3,7,2,Still struggling with CRM system,3,1
+EMP011,Engineering,Q2,4,8,3,Code review process needs improvement,4,2
+EMP012,Marketing,Q2,4,8,4,Team collaboration is strong,4,3
+EMP013,Sales,Q3,5,9,4,New training program is excellent,5,2
+EMP014,Engineering,Q3,4,8,4,Remote work flexibility is appreciated,4,4
+EMP015,HR,Q3,4,7,3,Budget constraints limiting initiatives,3,5
+EMP016,Marketing,Q3,5,9,4,Lead generation up 25% this quarter,5,3
+EMP017,Sales,Q3,4,8,3,Customer feedback has been positive,4,2
+EMP018,Engineering,Q3,5,9,5,Best quarter for product launches,5,4
+EMP019,HR,Q3,4,8,3,Employee retention improving,4,5
+EMP020,Sales,Q3,3,6,2,Competitor pressure affecting morale,3,1
