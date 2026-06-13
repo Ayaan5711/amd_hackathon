@@ -101,11 +101,12 @@ John,Sales,4"""
     
     def test_numeric_as_string(self):
         """Handle numeric values stored as strings."""
-        csv_content = """Score
-"4"
-"5"
-"3"""
-        
+        csv_content = '''ID,Score
+1,"4"
+2,"5"
+3,"3"
+'''
+
         df, schema = load_csv(csv_content.encode('utf-8'), "strings.csv")
         
         # Should detect as numeric

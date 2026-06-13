@@ -14,7 +14,14 @@ from typing import Any
 import pandas as pd
 
 from app.agent.state import LogEntry, SpecialistFinding, TriageResult
+from app.utils.csv_loader import df_to_log_entries
 from app.utils.llm_client import MockFabricator
+
+# Converts the uploaded DataFrame into the LogEntry-shaped dicts the graph and
+# specialists operate on. Defaults to the governance log-batch mapping
+# (log_id/user_prompt/ai_response columns); other packs (e.g. Survey) provide
+# their own mapping for non-log data.
+EntriesFn = Callable[[pd.DataFrame], list[LogEntry]]
 
 # Cheap, no-LLM pass over every uploaded entry. Produces the per-entry signals
 # the orchestrator uses to decide what (if anything) needs specialist review.
@@ -66,6 +73,9 @@ class AgentPack:
     dispatch_plan_fn: DispatchPlanFn
     risk_scoring_fn: RiskScoringFn
     dashboard_fn: DashboardFn
+
+    # DataFrame -> LogEntry-shaped dicts. Defaults to the governance log-batch mapping.
+    entries_fn: EntriesFn = df_to_log_entries
 
     # Ordered: section_name -> prompt builder. Iteration order is report order.
     report_sections: dict[str, ReportSectionPromptFn] = field(default_factory=dict)

@@ -24,7 +24,6 @@ from app.agent.prompts import build_orchestrator_prompt
 from app.agent.state import InvestigationState
 from app.config import MAX_TOKENS_ORCHESTRATOR, MAX_TOKENS_REPORT, VLLM_MODEL_ORCHESTRATOR, VLLM_MODEL_REPORT
 from app.packs.governance.llm_utils import parse_json_response
-from app.utils.csv_loader import df_to_log_entries
 from app.utils.llm_client import call_llm_async
 from app.utils.metrics import MetricsCollector
 
@@ -230,7 +229,7 @@ def get_investigation_graph() -> Any:
 async def run_investigation(pack: AgentPack, df: pd.DataFrame, session_id: str, run_id: str) -> InvestigationState:
     """Run the investigation graph for one log batch under the given AgentPack."""
     graph = get_investigation_graph()
-    entries = df_to_log_entries(df)
+    entries = pack.entries_fn(df)
     metrics = MetricsCollector()
 
     initial_state: InvestigationState = {

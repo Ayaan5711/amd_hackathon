@@ -43,7 +43,7 @@ def detect_column_type(series: pd.Series) -> str:
             avg_len = series.dropna().str.len().mean() if len(series.dropna()) > 0 else 0
             
             # Long text or high uniqueness suggests open text
-            if avg_len > 30 or unique_ratio > 0.6:
+            if avg_len > 30 or (unique_ratio > 0.6 and avg_len > 8):
                 return "open_text"
             
             # Check for boolean values
@@ -84,6 +84,9 @@ def load_csv(file_bytes: bytes, filename: str) -> tuple[pd.DataFrame, dict[str, 
     Raises:
         ValueError: If file is too large, has too many rows, or invalid format
     """
+    if len(file_bytes) == 0:
+        raise ValueError("CSV file is empty")
+
     size_mb = len(file_bytes) / (1024 * 1024)
     if size_mb > MAX_CSV_MB:
         raise ValueError(

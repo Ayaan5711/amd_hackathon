@@ -33,8 +33,10 @@ def sample_schema():
 class TestSegmentStats:
     """Tests for segment statistics tool."""
     
-    def test_basic_segmentation(self, sample_df, sample_schema):
+    def test_basic_segmentation(self, sample_df, sample_schema, monkeypatch):
         """Compute stats by segment."""
+        monkeypatch.setattr("app.tools.segment_stats.MIN_SEGMENT_SIZE", 2)
+
         result = get_segment_stats(
             sample_df, sample_schema,
             segment_column="Department",
@@ -125,8 +127,10 @@ class TestAnomalyFlag:
 class TestToolIntegration:
     """Integration tests for tools."""
     
-    def test_end_to_end_workflow(self, sample_df, sample_schema):
+    def test_end_to_end_workflow(self, sample_df, sample_schema, monkeypatch):
         """Test complete analysis workflow."""
+        monkeypatch.setattr("app.tools.segment_stats.MIN_SEGMENT_SIZE", 2)
+
         # Step 1: Segment analysis
         segment_result = get_segment_stats(
             sample_df, sample_schema,
