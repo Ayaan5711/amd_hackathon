@@ -65,9 +65,19 @@ def _mock_orchestrator_plan(summary: dict[str, int]):
     return fabricator
 
 
+def _emit(config: RunnableConfig, step: str, message: str) -> None:
+    """Best-effort live status update for the SSE progress stream - a no-op
+    outside `run_investigation_task` (e.g. in tests / `run_investigation`),
+    where `progress_cb` isn't set in `config["configurable"]`."""
+    progress_cb = config.get("configurable", {}).get("progress_cb")
+    if progress_cb:
+        progress_cb({"step": step, "message": message})
+
+
 def _triage_node(state: InvestigationState, config: RunnableConfig) -> dict[str, Any]:
     pack: AgentPack = config["configurable"]["pack"]
     df: pd.DataFrame = config["configurable"]["df"]
+    _emit(config, "triage", f"Running triage checks on {len(df)} entries (PII, injection, compliance heuristics)...")
     triage_results = pack.triage_fn(df, {})
     return {"triage_results": triage_results}
 
@@ -81,6 +91,7 @@ async def _orchestrator_node(state: InvestigationState, config: RunnableConfig) 
     summary = _triage_summary(triage_results, len(plan))
     prompt = build_orchestrator_prompt(summary)
 
+    _emit(config, "orchestrator", "Orchestrator agent is reasoning about triage results and planning specialist dispatch...")
     raw = await call_llm_async(
         messages=[{"role": "user", "content": prompt}],
         model=VLLM_MODEL_ORCHESTRATOR,
@@ -116,6 +127,13 @@ async def _specialist_dispatch_node(state: InvestigationState, config: RunnableC
         for item in state["investigation_plan"]
         if item["agent"] in pack.specialists
     ]
+    if tasks:
+        agent_names = sorted({item["agent"] for item in state["investigation_plan"] if item["agent"] in pack.specialists})
+        _emit(
+            config,
+            "specialist_dispatch",
+            f"Dispatching {', '.join(agent_names)} specialist agent(s) across {len(tasks)} flagged entries...",
+        )
     findings = list(await asyncio.gather(*tasks)) if tasks else []
     return {"specialist_findings": findings}
 
@@ -166,6 +184,7 @@ async def _report_node(state: InvestigationState, config: RunnableConfig) -> dic
     sections: dict[str, str] = {}
     for name, build_prompt in pack.report_sections.items():
         prompt, mock_fabricator = build_prompt(report_context)
+        _emit(config, "report", f"Drafting '{name}' report section...")
         raw = await call_llm_async(
             messages=[{"role": "user", "content": prompt}],
             model=VLLM_MODEL_REPORT,

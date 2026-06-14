@@ -85,7 +85,14 @@ async def run_investigation_task(run_id: str, df: pd.DataFrame, pack: "AgentPack
         "report_sections": {},
         "metrics": {},
     }
-    config = {"configurable": {"pack": pack, "df": df, "metrics": metrics}}
+    config = {
+        "configurable": {
+            "pack": pack,
+            "df": df,
+            "metrics": metrics,
+            "progress_cb": lambda event: run_store.append_progress(run_id, event),
+        }
+    }
 
     try:
         async for chunk in graph.astream(state, config=config, stream_mode="updates"):
