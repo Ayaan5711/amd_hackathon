@@ -1,13 +1,107 @@
 /* Aegis - Governance/Audit pack styles (extends style.css's theme variables) */
 
+.nav-brand {
+    text-decoration: none;
+}
+
 .nav-actions {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-.nav-link {
+.nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+}
+
+.nav-tab {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
     text-decoration: none;
+    transition: var(--transition);
+}
+
+.nav-tab:hover {
+    color: var(--text-primary);
+}
+
+.nav-tab.active {
+    background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+    color: #fff;
+}
+
+/* Landing page */
+.landing-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.landing-logo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.5rem;
+}
+
+.path-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 760px;
+}
+
+.path-card {
+    flex: 1 1 300px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: left;
+    text-decoration: none;
+    color: var(--text-primary);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.path-card:hover {
+    border-color: var(--border-focus);
+    background: rgba(26, 26, 37, 0.9);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+}
+
+.path-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 1.25rem;
+}
+
+.path-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.path-text {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+}
+
+.path-cta {
+    color: var(--text-accent);
+    font-weight: 600;
+    font-size: 0.875rem;
 }
 
 /* Upload extras */

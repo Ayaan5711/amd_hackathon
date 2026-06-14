@@ -140,7 +140,8 @@ pulseiq-mvp/
 │   ├── generate_synthetic_logs.py     # Builds the seeded synthetic log batch + ground truth
 │   └── generate_survey_demo.py        # Builds the seeded survey demo dataset
 ├── frontend/
-│   ├── index.html / aegis.js / aegis.css   # Aegis governance dashboard UI
+│   ├── index.html                          # Landing page - choose Governance or Survey Analytics
+│   ├── governance.html / aegis.js / aegis.css  # Aegis governance dashboard UI
 │   ├── survey.html / survey.js             # Survey Analytics UI (reuses aegis.css)
 │   └── app.js / style.css                  # Shared theme (style.css) + legacy PulseIQ chat JS
 ├── tests/                              # 114 tests (pytest)
@@ -800,7 +801,8 @@ per-run `chat_history`. (Like `SessionStore`, this is **in-memory and lost on re
 
 | File | Provides |
 |---|---|
-| `index.html` + `aegis.js` + `aegis.css` (+ shared `style.css`) | **Aegis governance dashboard**: drag-drop upload (or "Load demo dataset"), live SSE progress through the 6 investigation steps, a results view with **Dashboard** (risk-distribution chart, findings-by-category, top findings, efficiency callout), **Report** (5 tabbed sections), and **Chat** (talk to the findings, with tool-call badges and follow-up suggestions) |
+| `index.html` (+ shared `style.css`/`aegis.css`) | **Landing page**: Aegis brand splash with two path cards linking to the Governance and Survey Analytics modules |
+| `governance.html` + `aegis.js` + `aegis.css` (+ shared `style.css`) | **Aegis governance dashboard**: drag-drop upload (or "Load demo dataset"), live SSE progress through the 6 investigation steps, a results view with **Dashboard** (risk-distribution chart, findings-by-category, top findings, efficiency callout), **Report** (5 tabbed sections), and **Chat** (talk to the findings, with tool-call badges and follow-up suggestions) |
 | `survey.html` + `survey.js` (reuses `aegis.css` + `style.css`) | **Survey Analytics dashboard**: drag-drop a survey CSV (or "Load Demo Dataset"), live SSE progress, then **Dashboard** (risk distribution, findings-by-category, plus survey-only **Average Scores** and **Segment Comparison** bar charts from §5.2), **Report** (6 tabbed sections with markdown tables/ordered lists rendered), and **Chat** ("talk to your data" — segment, trend, theme, anomaly, recommendation, and risk-overview suggestion chips) |
 | `app.js` | Legacy PulseIQ chat-only JS for `app/api/routes.py`'s `/api/chat*` endpoints (§7.1) — no longer linked from any HTML page |
 
@@ -876,7 +878,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 
 Then open `http://127.0.0.1:8001/`:
 
-- **Aegis dashboard** (`index.html`) — click "Load demo dataset" (uses the seeded
+- **Landing page** (`index.html`) — pick **Governance** or **Survey Analytics**.
+- **Aegis dashboard** (`governance.html`) — click "Load demo dataset" (uses the seeded
   `app/data/synthetic_logs/logs.csv`) or upload your own CSV/JSON log batch, then watch
   the live SSE progress through triage → orchestrator → specialist dispatch → risk
   scoring → dashboard → report, and explore the Dashboard / Report / Chat tabs.

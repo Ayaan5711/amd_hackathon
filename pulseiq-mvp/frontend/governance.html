@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aegis - Survey Analytics</title>
+    <title>Aegis - Agentic AI Governance &amp; Audit</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,14 +38,14 @@
             </a>
             <div class="nav-actions">
                 <div class="nav-tabs">
-                    <a class="nav-tab" href="governance.html">Governance</a>
-                    <a class="nav-tab active" href="survey.html">Survey Analytics</a>
+                    <a class="nav-tab active" href="governance.html">Governance</a>
+                    <a class="nav-tab" href="survey.html">Survey Analytics</a>
                 </div>
                 <button id="new-run-btn" class="nav-btn" style="display: none;">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    New Analysis
+                    New Investigation
                 </button>
             </div>
         </nav>
@@ -56,12 +56,12 @@
             <section id="upload-view" class="view upload-view">
                 <div class="upload-container">
                     <div class="upload-header">
-                        <h1 class="title">Analyze Your Survey Data</h1>
-                        <p class="subtitle">Aegis turns a raw survey export into a full dashboard, demographic breakdowns, and a chatbot that can answer questions about every response.</p>
+                        <h1 class="title">Audit Your AI Interaction Logs</h1>
+                        <p class="subtitle">Aegis triages every entry for PII, then dynamically routes flagged entries to specialist agents for security, compliance, and hallucination review.</p>
                     </div>
 
                     <div class="upload-zone" id="upload-zone">
-                        <input type="file" id="file-input" accept=".csv" hidden>
+                        <input type="file" id="file-input" accept=".csv,.json" hidden>
                         <div class="upload-content">
                             <div class="upload-icon-large">
                                 <svg viewBox="0 0 80 80" fill="none">
@@ -75,14 +75,12 @@
                                     <path d="M40 24v32M24 40h32" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
                                 </svg>
                             </div>
-                            <h3 class="upload-title">Drop your survey CSV here</h3>
-                            <p class="upload-text">or <span class="upload-link">click to browse</span></p>
+                            <h3 class="upload-title">Drop your log batch here</h3>
+                            <p class="upload-text">CSV or JSON &middot; or <span class="upload-link">click to browse</span></p>
                             <div class="upload-specs">
-                                <span class="spec">UTF-8 format</span>
+                                <span class="spec">log_id, timestamp, user_prompt, ai_response</span>
                                 <span class="spec-dot"></span>
-                                <span class="spec">Up to 50MB</span>
-                                <span class="spec-dot"></span>
-                                <span class="spec">50K rows max</span>
+                                <span class="spec">optional retrieved_context</span>
                             </div>
                         </div>
                     </div>
@@ -103,50 +101,50 @@
             <!-- Progress View -->
             <section id="progress-view" class="view progress-view" style="display: none;">
                 <div class="progress-container">
-                    <h2 class="progress-title">Analyzing your survey&hellip;</h2>
-                    <p class="progress-subtitle">Analyzing <strong id="progress-filename"></strong> &middot; <span id="progress-rowcount"></span> responses</p>
+                    <h2 class="progress-title">Investigation in progress&hellip;</h2>
+                    <p class="progress-subtitle">Analyzing <strong id="progress-filename"></strong> &middot; <span id="progress-rowcount"></span> entries</p>
 
                     <ul class="progress-steps" id="progress-steps">
                         <li class="step" data-step="triage">
                             <span class="step-icon"></span>
                             <div class="step-body">
                                 <span class="step-name">Triage</span>
-                                <span class="step-message" data-default="Scanning responses for PII &amp; statistical outliers&hellip;">Scanning responses for PII &amp; statistical outliers&hellip;</span>
+                                <span class="step-message" data-default="Scanning every entry for PII &amp; heuristic flags&hellip;">Scanning every entry for PII &amp; heuristic flags&hellip;</span>
                             </div>
                         </li>
                         <li class="step" data-step="orchestrator">
                             <span class="step-icon"></span>
                             <div class="step-body">
                                 <span class="step-name">Orchestrator</span>
-                                <span class="step-message" data-default="Planning follow-up review for flagged responses&hellip;">Planning follow-up review for flagged responses&hellip;</span>
+                                <span class="step-message" data-default="Planning specialist dispatch for flagged entries&hellip;">Planning specialist dispatch for flagged entries&hellip;</span>
                             </div>
                         </li>
                         <li class="step" data-step="specialist_dispatch">
                             <span class="step-icon"></span>
                             <div class="step-body">
-                                <span class="step-name">Insight Agent</span>
-                                <span class="step-message" data-default="Reviewing flagged responses for context&hellip;">Reviewing flagged responses for context&hellip;</span>
+                                <span class="step-name">Specialist Agents</span>
+                                <span class="step-message" data-default="Running security, compliance &amp; hallucination reviews&hellip;">Running security, compliance &amp; hallucination reviews&hellip;</span>
                             </div>
                         </li>
                         <li class="step" data-step="risk_scoring">
                             <span class="step-icon"></span>
                             <div class="step-body">
-                                <span class="step-name">Scoring</span>
-                                <span class="step-message" data-default="Aggregating findings into per-response review scores&hellip;">Aggregating findings into per-response review scores&hellip;</span>
+                                <span class="step-name">Risk Scoring</span>
+                                <span class="step-message" data-default="Aggregating findings into per-entry risk scores&hellip;">Aggregating findings into per-entry risk scores&hellip;</span>
                             </div>
                         </li>
                         <li class="step" data-step="dashboard">
                             <span class="step-icon"></span>
                             <div class="step-body">
                                 <span class="step-name">Dashboard</span>
-                                <span class="step-message" data-default="Building metric &amp; segment charts&hellip;">Building metric &amp; segment charts&hellip;</span>
+                                <span class="step-message" data-default="Building risk distribution &amp; efficiency summary&hellip;">Building risk distribution &amp; efficiency summary&hellip;</span>
                             </div>
                         </li>
                         <li class="step" data-step="report">
                             <span class="step-icon"></span>
                             <div class="step-body">
                                 <span class="step-name">Report</span>
-                                <span class="step-message" data-default="Authoring segment, trend, theme &amp; recommendation sections&hellip;">Authoring segment, trend, theme &amp; recommendation sections&hellip;</span>
+                                <span class="step-message" data-default="Authoring audit report sections&hellip;">Authoring audit report sections&hellip;</span>
                             </div>
                         </li>
                     </ul>
@@ -181,7 +179,7 @@
                                     <textarea
                                         id="chat-input"
                                         class="message-input"
-                                        placeholder="Ask about your survey data..."
+                                        placeholder="Ask about these findings..."
                                         rows="1"
                                     ></textarea>
                                     <button id="chat-send-btn" class="send-btn">
@@ -211,6 +209,6 @@
         </div>
     </div>
 
-    <script src="survey.js"></script>
+    <script src="aegis.js"></script>
 </body>
 </html>

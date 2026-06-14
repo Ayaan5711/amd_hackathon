@@ -1,4 +1,4 @@
-/* PulseIQ Survey Analytics - frontend.
+/* Aegis Survey Analytics - frontend.
  * Flow: upload or demo -> investigate -> SSE progress -> dashboard/report/chat.
  */
 
