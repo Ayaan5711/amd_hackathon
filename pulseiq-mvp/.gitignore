@@ -13,3 +13,5 @@ venv/
 
 # ChromaDB persistence (compliance RAG index, rebuilt on startup)
 app/data/chroma/
+
+docs
