@@ -273,8 +273,14 @@ async def _synthesis_node(state: ChatState, config: RunnableConfig) -> dict[str,
     return {
         "response_narrative": synthesis.get("narrative", ""),
         "follow_up_suggestions": synthesis.get("follow_up_suggestions", []),
-        "evidence": synthesis.get("evidence", {}),
+        "evidence": {**synthesis.get("evidence", {}), "chart_data": _chart_data(state)},
     }
+
+
+def _chart_data(state: ChatState) -> list[dict[str, Any]]:
+    """Successful tool results, ready for the frontend to render as charts
+    (frontend/charts.js's renderEvidenceChart) - independent of LLM JSON quality."""
+    return [{"tool_name": r["tool_name"], "result": r["result"]} for r in state["tool_results"] if r["success"]]
 
 
 def _fallback_synthesis(state: ChatState) -> dict[str, Any]:
@@ -282,7 +288,7 @@ def _fallback_synthesis(state: ChatState) -> dict[str, Any]:
     return {
         "response_narrative": " ".join(parts) if parts else "Here are the results.",
         "follow_up_suggestions": ["Can you tell me more about this?"],
-        "evidence": {},
+        "evidence": {"chart_data": _chart_data(state)},
     }
 
 

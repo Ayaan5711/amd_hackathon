@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.governance_routes import router as governance_router
+from app.api.platform_routes import router as platform_router
 from app.api.routes import router as api_router
 from app.api.survey_routes import router as survey_router
 from app.config import HOST, LOG_LEVEL, PORT
@@ -68,6 +69,7 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 app.include_router(governance_router, prefix="/api")
 app.include_router(survey_router, prefix="/api")
+app.include_router(platform_router, prefix="/api")
 
 # Mount static files (frontend)
 try:

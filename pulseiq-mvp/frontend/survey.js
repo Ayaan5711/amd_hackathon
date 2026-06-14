@@ -38,56 +38,6 @@ const REPORT_ORDER = [
     'recommendations',
 ];
 
-// Shared color palette for donut / stacked-bar charts (demographic profile,
-// response distribution, segment cross-tabs). Cycled by option/value index so the
-// same option (e.g. "More than current") gets the same color across charts.
-const CHART_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#fbbf24', '#f87171', '#22d3ee', '#f472b6', '#a3e635'];
-
-function chartColor(index) {
-    return CHART_COLORS[index % CHART_COLORS.length];
-}
-
-// Builds `conic-gradient()` stops from a `[{value, percent}, ...]` distribution,
-// clamping the final stop to 100% to avoid gaps from rounding.
-function conicGradientStops(distribution) {
-    let acc = 0;
-    return distribution
-        .map((d, i) => {
-            const start = acc;
-            acc += d.percent;
-            const end = i === distribution.length - 1 ? 100 : acc;
-            return `${chartColor(i)} ${start}% ${end}%`;
-        })
-        .join(', ');
-}
-
-// Builds a `value -> color` map for a list of option strings, preserving order.
-function buildColorMap(options) {
-    const map = {};
-    options.forEach((opt, i) => {
-        map[opt] = chartColor(i);
-    });
-    return map;
-}
-
-function renderChartLegend(items) {
-    return `<ul class="chart-legend">${items
-        .map(
-            (item) => `
-        <li class="legend-item">
-            <span class="legend-swatch" style="background:${item.color}"></span>
-            ${escapeHtml(item.label)}${item.percent != null ? ` <span class="legend-pct">${item.percent}%</span>` : ''}
-        </li>`
-        )
-        .join('')}</ul>`;
-}
-
-function renderStackedBar(distribution, colorMap) {
-    return `<div class="stacked-bar">${distribution
-        .map((d) => `<div class="stacked-segment" style="width:${d.percent}%; background:${colorMap[d.value] || '#888'}" title="${escapeHtml(d.value)}: ${d.percent}%"></div>`)
-        .join('')}</div>`;
-}
-
 // DOM references
 const uploadView = document.getElementById('upload-view');
 const progressView = document.getElementById('progress-view');
@@ -363,6 +313,18 @@ async function fetchJSON(url, options) {
     return response.json();
 }
 
+function gpuMetricCard(gpu) {
+    if (!gpu.gpu_available) {
+        return { label: 'GPU', value: 'CPU (mock)' };
+    }
+    const value = gpu.gpu_utilization_pct != null ? `${Math.round(gpu.gpu_utilization_pct)}%` : 'AMD ROCm';
+    let label = gpu.gpu_name ? `${gpu.gpu_name} util.` : 'GPU (AMD ROCm)';
+    if (gpu.vram_used_gb != null && gpu.vram_total_gb != null) {
+        label += ` · ${gpu.vram_used_gb}/${gpu.vram_total_gb} GB VRAM`;
+    }
+    return { label, value };
+}
+
 function renderMetricsStrip(metrics) {
     const eff = metrics.efficiency || {};
     const gpu = metrics.gpu || {};
@@ -371,7 +333,7 @@ function renderMetricsStrip(metrics) {
         { label: 'Tokens', value: (metrics.total_tokens || 0).toLocaleString() },
         { label: 'Wall Clock', value: `${metrics.wall_clock_seconds}s` },
         { label: 'Calls Saved', value: eff.reduction_pct != null ? `${eff.reduction_pct}%` : 'N/A' },
-        { label: 'GPU', value: gpu.gpu_available ? 'AMD ROCm' : 'CPU (mock)' },
+        gpuMetricCard(gpu),
     ];
     metricsStrip.innerHTML = cards
         .map(
@@ -413,7 +375,7 @@ function renderDashboard(dashboard) {
         })
         .join('');
 
-    const crosstabCharts = renderCrosstabCharts(dashboard.crosstabs);
+    const crosstabCharts = dashboard.crosstabs ? renderCrosstabCharts(dashboard.crosstabs) : '';
 
     const topFindings = dashboard.top_findings || [];
     const topFindingsRows = topFindings
@@ -744,6 +706,14 @@ function setupTabs() {
     document.querySelectorAll('.results-tabs .tab-btn').forEach((btn) => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
+
+    const printBtn = document.getElementById('print-report-btn');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            switchTab('report');
+            window.print();
+        });
+    }
 }
 
 function switchTab(tabName) {
@@ -890,12 +860,24 @@ function addChatMessage(role, content, options = {}) {
     }
 
     if (options.evidence && Object.keys(options.evidence).length > 0) {
-        const evidenceDiv = document.createElement('details');
-        evidenceDiv.className = 'evidence-panel';
-        evidenceDiv.innerHTML = `<summary>View evidence</summary><pre>${escapeHtml(
-            JSON.stringify(options.evidence, null, 2)
-        )}</pre>`;
-        contentDiv.appendChild(evidenceDiv);
+        const chartHtml = renderEvidenceChart(options.evidence.chart_data || []);
+        const evidenceToShow = { ...options.evidence };
+        if (chartHtml) {
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chat-chart';
+            chartDiv.innerHTML = chartHtml;
+            contentDiv.appendChild(chartDiv);
+            delete evidenceToShow.chart_data;
+        }
+
+        if (Object.keys(evidenceToShow).length > 0) {
+            const evidenceDiv = document.createElement('details');
+            evidenceDiv.className = 'evidence-panel';
+            evidenceDiv.innerHTML = `<summary>View evidence</summary><pre>${escapeHtml(
+                JSON.stringify(evidenceToShow, null, 2)
+            )}</pre>`;
+            contentDiv.appendChild(evidenceDiv);
+        }
     }
 
     messageDiv.appendChild(avatar);

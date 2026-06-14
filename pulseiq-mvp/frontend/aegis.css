@@ -366,6 +366,9 @@
     flex-shrink: 0;
     color: var(--text-secondary);
     text-transform: capitalize;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bar-track {
@@ -435,8 +438,8 @@
 
 .donut-chart {
     position: relative;
-    width: 96px;
-    height: 96px;
+    width: 112px;
+    height: 112px;
     border-radius: 50%;
     flex-shrink: 0;
 }
@@ -462,12 +465,12 @@
 }
 
 .donut-caption {
-    font-size: 0.625rem;
+    font-size: 0.6rem;
     color: var(--text-muted);
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.2;
 }
 
 /* Survey dashboard charts: shared legend for donuts + stacked bars */
@@ -769,5 +772,99 @@
 
     .findings-table {
         font-size: 0.75rem;
+    }
+}
+
+/* Chat charts: evidence.chart_data rendered via charts.js inside a chat bubble.
+   Reuses .dashboard-card/.bar-row/.donut-*, with tighter spacing. */
+.chat-chart {
+    margin-top: 0.75rem;
+    max-width: 480px;
+}
+
+.chat-chart .dashboard-card {
+    padding: 0.875rem 1rem;
+}
+
+.chat-chart .dashboard-card h3 {
+    font-size: 0.8125rem;
+    margin-bottom: 0.625rem;
+}
+
+.chat-chart .dashboard-card + .dashboard-card {
+    margin-top: 0.625rem;
+}
+
+/* Report tab header: tabs + Print Report button */
+.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.report-header .report-tabs {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.print-btn {
+    flex-shrink: 0;
+}
+
+/* AMD platform strip: persistent slim bar fixed above .nav on every page.
+   platform.js shifts .nav and .main down by this strip's rendered height. */
+.platform-strip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.375rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.platform-strip strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+@media print {
+    .platform-strip,
+    .nav,
+    .gradient-bg,
+    .results-tabs,
+    .print-btn,
+    #tab-dashboard,
+    #tab-chat,
+    #loading-overlay {
+        display: none !important;
+    }
+
+    #tab-report {
+        display: block !important;
+    }
+
+    body,
+    #app,
+    .report-content {
+        background: #fff;
+        color: #000;
+    }
+
+    .report-content a {
+        color: #000;
     }
 }

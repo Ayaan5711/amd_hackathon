@@ -32,6 +32,7 @@ from app.packs.survey.categorical import (
 )
 from app.packs.survey.common import pick_excluded_columns, reconstruct_df_and_schema
 from app.packs.survey.entries import survey_entries_fn
+from app.packs.survey.report import _crosstab_finding_sentence
 from app.packs.survey.tool_registry import mock_survey_chat_intent
 from app.tools.registry import TOOL_REGISTRY
 from app.utils.csv_loader import get_categorical_columns
@@ -499,6 +500,52 @@ class TestTcsReportAndDashboard:
         assert "| Metric | Sales | Marketing |" in segment
 
 
+class TestCrosstabFindingSentence:
+    """Unit coverage for _crosstab_finding_sentence's tie vs. non-tie phrasing."""
+
+    def _crosstab(self, male_pct: float, female_pct: float) -> dict:
+        return {
+            "response_column": "Outlook_General",
+            "options": ["More than current", "Similar to current", "Less than current"],
+            "segments": [
+                {
+                    "segment": "Male",
+                    "distribution": [
+                        {"value": "More than current", "percent": male_pct},
+                        {"value": "Similar to current", "percent": 100.0 - male_pct},
+                    ],
+                },
+                {
+                    "segment": "Female",
+                    "distribution": [
+                        {"value": "More than current", "percent": female_pct},
+                        {"value": "Similar to current", "percent": 100.0 - female_pct},
+                    ],
+                },
+            ],
+        }
+
+    def _response_summary(self) -> dict:
+        return {"questions": [{"column": "Outlook_General", "dominant_value": "More than current"}]}
+
+    def test_tie_produces_neutral_phrasing(self):
+        sentence = _crosstab_finding_sentence(self._crosstab(50.0, 50.0), self._response_summary())
+
+        assert sentence is not None
+        assert "similar" in sentence
+        assert "materially higher" not in sentence
+        assert "Male" in sentence and "Female" in sentence
+        assert "50.0%" in sentence
+
+    def test_non_tie_produces_materially_higher_phrasing(self):
+        sentence = _crosstab_finding_sentence(self._crosstab(70.0, 30.0), self._response_summary())
+
+        assert sentence is not None
+        assert "materially higher" in sentence
+        assert "Male" in sentence and "Female" in sentence
+        assert "70.0%" in sentence and "30.0%" in sentence
+
+
 class TestTcsChat:
     """Exercises the 5 new demographic/Likert "response" chat tools end to end via
     invoke_governance_chat, on the tcs_full_run investigation (which has both
@@ -515,6 +562,11 @@ class TestTcsChat:
         assert result["tool_calls"] == [{"tool_name": "get_value_distribution", "arguments": {"column": "Gender"}}]
         assert result["tool_results"][0]["success"] is True
         assert result["response_narrative"]
+
+        chart_data = result["evidence"]["chart_data"]
+        assert chart_data
+        assert chart_data[0]["tool_name"] == "get_value_distribution"
+        assert chart_data[0]["result"]["column"] == "Gender"
 
     def test_response_by_segment_question(self, tcs_full_run):
         result = self._chat(tcs_full_run, "Compare Outlook General by Gender")

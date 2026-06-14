@@ -101,18 +101,63 @@ class MetricsCollector:
         }
 
 
+def _to_float(value: Any) -> float | None:
+    try:
+        return float(str(value).rstrip("%").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _bytes_to_gb(value: Any) -> float | None:
+    raw_bytes = _to_float(value)
+    if raw_bytes is None:
+        return None
+    return round(raw_bytes / (1024**3), 2)
+
+
+def _parse_gpu_summary(raw: dict[str, Any]) -> dict[str, Any]:
+    """Best-effort extraction of GPU name/utilization/VRAM from `rocm-smi --json`
+    output. Field names vary across ROCm versions, so every value defaults to
+    `None` if it can't be confidently found - `raw` stays available either way
+    for debugging/fallback display."""
+    summary: dict[str, Any] = {
+        "gpu_name": None,
+        "gpu_utilization_pct": None,
+        "vram_used_gb": None,
+        "vram_total_gb": None,
+    }
+
+    card = next((v for k, v in raw.items() if k.startswith("card") and isinstance(v, dict)), None)
+    if not card:
+        return summary
+
+    for key, value in card.items():
+        key_lower = key.lower()
+        if any(s in key_lower for s in ("card series", "card model", "product name", "device name")):
+            summary["gpu_name"] = value
+        elif "gpu use" in key_lower or "gpu busy" in key_lower:
+            summary["gpu_utilization_pct"] = _to_float(value)
+        elif "vram total used memory" in key_lower:
+            summary["vram_used_gb"] = _bytes_to_gb(value)
+        elif "vram total memory" in key_lower:
+            summary["vram_total_gb"] = _bytes_to_gb(value)
+
+    return summary
+
+
 def gpu_stats() -> dict[str, Any]:
     """Best-effort AMD GPU stats via rocm-smi. Returns {'gpu_available': False} off-AMD/Windows."""
     try:
         result = subprocess.run(
-            ["rocm-smi", "--showuse", "--showmeminfo", "vram", "--json"],
+            ["rocm-smi", "--showuse", "--showmeminfo", "vram", "--showproductname", "--json"],
             capture_output=True,
             text=True,
             timeout=5,
         )
         if result.returncode != 0 or not result.stdout.strip():
             return {"gpu_available": False}
-        return {"gpu_available": True, "raw": json.loads(result.stdout)}
+        raw = json.loads(result.stdout)
+        return {"gpu_available": True, "raw": raw, **_parse_gpu_summary(raw)}
     except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError, OSError) as e:
         logger.debug(f"rocm-smi unavailable: {e}")
         return {"gpu_available": False}

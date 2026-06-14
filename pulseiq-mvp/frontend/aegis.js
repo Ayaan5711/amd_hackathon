@@ -309,6 +309,18 @@ async function fetchJSON(url, options) {
     return response.json();
 }
 
+function gpuMetricCard(gpu) {
+    if (!gpu.gpu_available) {
+        return { label: 'GPU', value: 'CPU (mock)' };
+    }
+    const value = gpu.gpu_utilization_pct != null ? `${Math.round(gpu.gpu_utilization_pct)}%` : 'AMD ROCm';
+    let label = gpu.gpu_name ? `${gpu.gpu_name} util.` : 'GPU (AMD ROCm)';
+    if (gpu.vram_used_gb != null && gpu.vram_total_gb != null) {
+        label += ` · ${gpu.vram_used_gb}/${gpu.vram_total_gb} GB VRAM`;
+    }
+    return { label, value };
+}
+
 function renderMetricsStrip(metrics) {
     const eff = metrics.efficiency || {};
     const gpu = metrics.gpu || {};
@@ -317,7 +329,7 @@ function renderMetricsStrip(metrics) {
         { label: 'Tokens', value: (metrics.total_tokens || 0).toLocaleString() },
         { label: 'Wall Clock', value: `${metrics.wall_clock_seconds}s` },
         { label: 'Calls Saved', value: eff.reduction_pct != null ? `${eff.reduction_pct}%` : 'N/A' },
-        { label: 'GPU', value: gpu.gpu_available ? 'AMD ROCm' : 'CPU (mock)' },
+        gpuMetricCard(gpu),
     ];
     metricsStrip.innerHTML = cards
         .map(
@@ -492,6 +504,14 @@ function setupTabs() {
     document.querySelectorAll('.results-tabs .tab-btn').forEach((btn) => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
+
+    const printBtn = document.getElementById('print-report-btn');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            switchTab('report');
+            window.print();
+        });
+    }
 }
 
 function switchTab(tabName) {
@@ -630,12 +650,24 @@ function addChatMessage(role, content, options = {}) {
     }
 
     if (options.evidence && Object.keys(options.evidence).length > 0) {
-        const evidenceDiv = document.createElement('details');
-        evidenceDiv.className = 'evidence-panel';
-        evidenceDiv.innerHTML = `<summary>View evidence</summary><pre>${escapeHtml(
-            JSON.stringify(options.evidence, null, 2)
-        )}</pre>`;
-        contentDiv.appendChild(evidenceDiv);
+        const chartHtml = renderEvidenceChart(options.evidence.chart_data || []);
+        const evidenceToShow = { ...options.evidence };
+        if (chartHtml) {
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chat-chart';
+            chartDiv.innerHTML = chartHtml;
+            contentDiv.appendChild(chartDiv);
+            delete evidenceToShow.chart_data;
+        }
+
+        if (Object.keys(evidenceToShow).length > 0) {
+            const evidenceDiv = document.createElement('details');
+            evidenceDiv.className = 'evidence-panel';
+            evidenceDiv.innerHTML = `<summary>View evidence</summary><pre>${escapeHtml(
+                JSON.stringify(evidenceToShow, null, 2)
+            )}</pre>`;
+            contentDiv.appendChild(evidenceDiv);
+        }
     }
 
     messageDiv.appendChild(avatar);

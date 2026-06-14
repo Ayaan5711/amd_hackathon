@@ -311,6 +311,11 @@ def _crosstab_finding_sentence(crosstab: dict[str, Any], response_summary: dict[
     segment_percents.sort(key=lambda item: item[1], reverse=True)
     best_segment, best_pct = segment_percents[0]
     worst_segment, worst_pct = segment_percents[-1]
+    if _pct(best_pct) == _pct(worst_pct):
+        return (
+            f"**{best_segment}** and **{worst_segment}** respondents show a similar **{response_column}** "
+            f"'{dominant_value}' share ({_pct(best_pct)} vs {_pct(worst_pct)})."
+        )
     return (
         f"**{best_segment}** respondents show materially higher **{response_column}** "
         f"'{dominant_value}' share than **{worst_segment}** ({_pct(best_pct)} vs {_pct(worst_pct)})."

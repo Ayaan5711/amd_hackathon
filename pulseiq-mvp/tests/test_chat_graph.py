@@ -102,6 +102,11 @@ class TestRiskAndComparison:
         assert tool_result["risk_distribution"] == full_run["risk_scores"]["risk_distribution"]
         assert tool_result["overall_risk_score"] == full_run["risk_scores"]["overall_risk_score"]
 
+        chart_data = result["evidence"]["chart_data"]
+        assert chart_data
+        assert chart_data[0]["tool_name"] == "get_risk_distribution"
+        assert chart_data[0]["result"]["risk_distribution"] == full_run["risk_scores"]["risk_distribution"]
+
     def test_compare_categories_question(self, full_run):
         result = _chat(full_run, "Which category has the most findings, compare them all?")
         assert result["tool_calls"] == [{"tool_name": "compare_categories", "arguments": {}}]
