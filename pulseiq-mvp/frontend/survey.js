@@ -332,6 +332,10 @@ function renderMetricsStrip(metrics) {
         { label: 'LLM Calls', value: metrics.total_calls },
         { label: 'Tokens', value: (metrics.total_tokens || 0).toLocaleString() },
         { label: 'Wall Clock', value: `${metrics.wall_clock_seconds}s` },
+        {
+            label: 'Avg Latency',
+            value: metrics.total_calls ? `${Math.round(metrics.total_latency_ms / metrics.total_calls)}ms` : 'N/A',
+        },
         { label: 'Calls Saved', value: eff.reduction_pct != null ? `${eff.reduction_pct}%` : 'N/A' },
         gpuMetricCard(gpu),
     ];
