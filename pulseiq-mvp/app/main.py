@@ -1,6 +1,7 @@
 """FastAPI application entry point."""
 
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 
@@ -15,6 +16,7 @@ from app.config import HOST, LOG_LEVEL, PORT
 from app.session.store import get_session_store
 
 # Configure logging
+os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL.upper()),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

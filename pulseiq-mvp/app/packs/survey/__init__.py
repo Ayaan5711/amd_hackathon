@@ -47,4 +47,22 @@ SURVEY_PACK = AgentPack(
     chat_tool_registry=SURVEY_TOOL_REGISTRY,
     chat_tool_functions=SURVEY_TOOL_FUNCTIONS,
     chat_intent_fn=mock_survey_chat_intent,
+    chat_persona="a survey analytics assistant",
+    chat_entry_noun="survey responses",
+    chat_fallback_narrative=(
+        "I can help you explore this survey's results. Try asking about:\n"
+        "- Segment comparisons (e.g. 'Which department has the highest satisfaction?')\n"
+        "- Trends over time (e.g. 'Show me satisfaction trends by quarter')\n"
+        "- Themes in open-text comments (e.g. 'What are the main themes in the comments?')\n"
+        "- Outliers or anomalies in the responses\n"
+        "- Recommended actions based on the results\n"
+        "- Demographic or response breakdowns (e.g. 'What percentage of respondents are Male?')\n"
+        "- A specific response (e.g. 'Tell me about response 19')"
+    ),
+    chat_fallback_suggestions=[
+        "Which department has the highest satisfaction?",
+        "Show me satisfaction trends by quarter",
+        "What are the main themes in the comments?",
+        "What actions should we take?",
+    ],
 )

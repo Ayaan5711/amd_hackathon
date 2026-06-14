@@ -98,3 +98,30 @@ class AgentPack:
 
     # Optional pack-specific mock intent classifier (see ChatIntentFn above).
     chat_intent_fn: ChatIntentFn | None = None
+
+    # Persona + framing for the chat intent classifier prompt (see
+    # GOVERNANCE_CHAT_INTENT_PROMPT). A mismatched persona/noun can prime the LLM
+    # to treat in-domain questions as out-of-scope "general" chat with no tool
+    # calls, since the prompt's opening sentence sets the model's sense of what
+    # questions are "in scope" for the available tools.
+    chat_persona: str = "an AI-governance audit assistant"
+    chat_entry_noun: str = "AI interaction log entries"
+
+    # Shown by the chat synthesis node when the intent classifier decides no tool
+    # call is needed (e.g. a greeting or "what can you do").
+    chat_fallback_narrative: str = (
+        "I can help you explore this investigation's findings. Try asking about:\n"
+        "- Findings by category (e.g. 'What PII issues were found?')\n"
+        "- A specific entry (e.g. 'Tell me about LOG-0042')\n"
+        "- Why an entry was flagged (e.g. 'Why is LOG-0042 high risk?')\n"
+        "- The overall risk distribution\n"
+        "- Category comparisons\n"
+        "- Token-efficiency metrics for this run"
+    )
+    chat_fallback_suggestions: list[str] = field(
+        default_factory=lambda: [
+            "What's the overall risk distribution?",
+            "Which category has the most findings?",
+            "How efficient was this run?",
+        ]
+    )

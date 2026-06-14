@@ -9,7 +9,7 @@ venv/
 .mypy_cache/
 
 # Logs
-logs/*.log
+*.log
 
 # ChromaDB persistence (compliance RAG index, rebuilt on startup)
 app/data/chroma/

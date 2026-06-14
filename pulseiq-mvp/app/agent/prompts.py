@@ -209,10 +209,9 @@ def build_orchestrator_prompt(triage_summary: dict[str, int]) -> str:
 # Governance pack - "talk to results" chat prompts
 # =============================================================================
 
-GOVERNANCE_CHAT_INTENT_PROMPT = """You are an intent classifier for an AI-governance audit assistant. \
+GOVERNANCE_CHAT_INTENT_PROMPT = """You are an intent classifier for {chat_persona}. \
 The user is asking questions about the results of a completed investigation of \
-{total_entries} AI interaction log entries, of which {total_flagged} were flagged for \
-specialist review.
+{total_entries} {chat_entry_noun}, of which {total_flagged} were flagged for review.
 
 INVESTIGATION SUMMARY:
 - Findings by category: {findings_by_category}
@@ -323,9 +322,13 @@ def build_governance_chat_intent_prompt(
     tool_registry: list[dict],
     investigation_summary: dict,
     history: list[dict[str, str]],
+    chat_persona: str = "an AI-governance audit assistant",
+    chat_entry_noun: str = "AI interaction log entries",
 ) -> str:
     """Build the governance chat intent classification prompt."""
     return GOVERNANCE_CHAT_INTENT_PROMPT.format(
+        chat_persona=chat_persona,
+        chat_entry_noun=chat_entry_noun,
         total_entries=investigation_summary.get("total_entries", 0),
         total_flagged=investigation_summary.get("total_flagged", 0),
         findings_by_category=investigation_summary.get("findings_by_category", {}),

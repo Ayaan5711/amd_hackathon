@@ -106,7 +106,7 @@ async function handleFile(file) {
     try {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch('/api/governance/upload', { method: 'POST', body: formData });
+        const response = await fetch('api/governance/upload', { method: 'POST', body: formData });
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Upload failed');
@@ -124,7 +124,7 @@ async function loadDemo() {
     showLoading('Loading demo dataset...');
 
     try {
-        const response = await fetch('/api/governance/demo', { method: 'POST' });
+        const response = await fetch('api/governance/demo', { method: 'POST' });
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Failed to load demo dataset');
@@ -139,7 +139,7 @@ async function loadDemo() {
 
 async function startInvestigation(uploadData) {
     try {
-        const response = await fetch(`/api/governance/investigate/${uploadData.session_id}`, { method: 'POST' });
+        const response = await fetch(`api/governance/investigate/${uploadData.session_id}`, { method: 'POST' });
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail || 'Failed to start investigation');
@@ -178,7 +178,7 @@ function showProgressView(uploadData) {
 
 function streamProgress(runId) {
     if (eventSource) eventSource.close();
-    eventSource = new EventSource(`/api/governance/stream/${runId}`);
+    eventSource = new EventSource(`api/governance/stream/${runId}`);
 
     eventSource.addEventListener('progress', (e) => {
         const event = JSON.parse(e.data);
@@ -192,16 +192,51 @@ function streamProgress(runId) {
     });
 
     eventSource.addEventListener('error', (e) => {
-        eventSource.close();
-        let message = 'Investigation failed.';
+        let serverError = null;
         try {
             const parsed = JSON.parse(e.data);
-            if (parsed && parsed.error) message = parsed.error;
+            if (parsed && parsed.error) serverError = parsed.error;
         } catch (_) {
-            // Native connection-level error event has no `.data`; keep default message.
+            // Native connection-level error event has no `.data`.
         }
-        showProgressError(message);
+        eventSource.close();
+        if (serverError) {
+            showProgressError(serverError);
+            return;
+        }
+        // The stream dropped without a `complete`/`error` event (e.g. a proxy/tunnel
+        // timeout during a long-running investigation). The background task keeps
+        // running independently of this connection, so poll /status instead of
+        // declaring failure immediately.
+        pollInvestigationStatus(runId);
     });
+}
+
+async function pollInvestigationStatus(runId) {
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_ATTEMPTS = 150; // ~5 minutes
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+        try {
+            const response = await fetch(`api/governance/status/${runId}`);
+            if (!response.ok) continue;
+            const status = await response.json();
+            (status.progress || []).forEach(applyProgressEvent);
+            if (status.status === 'complete') {
+                markAllStepsDone();
+                finishInvestigation(runId);
+                return;
+            }
+            if (status.status === 'error') {
+                showProgressError(status.error || 'Investigation failed.');
+                return;
+            }
+        } catch (_) {
+            // Network hiccup - keep polling.
+        }
+    }
+    showProgressError('Investigation failed.');
 }
 
 function applyProgressEvent(event) {
@@ -244,9 +279,9 @@ async function finishInvestigation(runId) {
     showLoading('Loading results...');
     try {
         const [dashboard, report, metrics] = await Promise.all([
-            fetchJSON(`/api/governance/dashboard/${runId}`),
-            fetchJSON(`/api/governance/report/${runId}`),
-            fetchJSON(`/api/governance/metrics/${runId}`),
+            fetchJSON(`api/governance/dashboard/${runId}`),
+            fetchJSON(`api/governance/report/${runId}`),
+            fetchJSON(`api/governance/metrics/${runId}`),
         ]);
 
         renderMetricsStrip(metrics);
@@ -530,7 +565,7 @@ async function sendChatMessage() {
     showTypingIndicator();
 
     try {
-        const data = await fetchJSON(`/api/governance/chat/${currentRunId}`, {
+        const data = await fetchJSON(`api/governance/chat/${currentRunId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message }),

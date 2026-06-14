@@ -7,7 +7,7 @@ let eventSource = null;
 let chatProcessing = false;
 let reportSections = {};
 
-const API_BASE = '/api/survey';
+const API_BASE = 'api/survey';
 
 const STEP_ORDER = ['triage', 'orchestrator', 'specialist_dispatch', 'risk_scoring', 'dashboard', 'report'];
 
@@ -246,16 +246,51 @@ function streamProgress(runId) {
     });
 
     eventSource.addEventListener('error', (e) => {
-        eventSource.close();
-        let message = 'Analysis failed.';
+        let serverError = null;
         try {
             const parsed = JSON.parse(e.data);
-            if (parsed && parsed.error) message = parsed.error;
+            if (parsed && parsed.error) serverError = parsed.error;
         } catch (_) {
-            // Native connection-level error event has no `.data`; keep default message.
+            // Native connection-level error event has no `.data`.
         }
-        showProgressError(message);
+        eventSource.close();
+        if (serverError) {
+            showProgressError(serverError);
+            return;
+        }
+        // The stream dropped without a `complete`/`error` event (e.g. a proxy/tunnel
+        // timeout during a long-running investigation). The background task keeps
+        // running independently of this connection, so poll /status instead of
+        // declaring failure immediately.
+        pollInvestigationStatus(runId);
     });
+}
+
+async function pollInvestigationStatus(runId) {
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_ATTEMPTS = 150; // ~5 minutes
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+        try {
+            const response = await fetch(`${API_BASE}/status/${runId}`);
+            if (!response.ok) continue;
+            const status = await response.json();
+            (status.progress || []).forEach(applyProgressEvent);
+            if (status.status === 'complete') {
+                markAllStepsDone();
+                finishInvestigation(runId);
+                return;
+            }
+            if (status.status === 'error') {
+                showProgressError(status.error || 'Analysis failed.');
+                return;
+            }
+        } catch (_) {
+            // Network hiccup - keep polling.
+        }
+    }
+    showProgressError('Analysis failed.');
 }
 
 function applyProgressEvent(event) {

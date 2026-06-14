@@ -104,6 +104,8 @@ async def _intent_node(state: ChatState, config: RunnableConfig) -> dict[str, An
         tool_registry=pack.chat_tool_registry,
         investigation_summary=_investigation_summary(investigation),
         history=state["history"],
+        chat_persona=pack.chat_persona,
+        chat_entry_noun=pack.chat_entry_noun,
     )
     if pack.chat_intent_fn is not None:
         mock_fabricator = pack.chat_intent_fn(state["user_message"], pack.chat_tool_registry, investigation)
@@ -228,21 +230,10 @@ async def _synthesis_node(state: ChatState, config: RunnableConfig) -> dict[str,
         }
 
     if not state["tool_calls"]:
+        pack: AgentPack = config["configurable"]["pack"]
         return {
-            "response_narrative": (
-                "I can help you explore this investigation's findings. Try asking about:\n"
-                "- Findings by category (e.g. 'What PII issues were found?')\n"
-                "- A specific entry (e.g. 'Tell me about LOG-0042')\n"
-                "- Why an entry was flagged (e.g. 'Why is LOG-0042 high risk?')\n"
-                "- The overall risk distribution\n"
-                "- Category comparisons\n"
-                "- Token-efficiency metrics for this run"
-            ),
-            "follow_up_suggestions": [
-                "What's the overall risk distribution?",
-                "Which category has the most findings?",
-                "How efficient was this run?",
-            ],
+            "response_narrative": pack.chat_fallback_narrative,
+            "follow_up_suggestions": list(pack.chat_fallback_suggestions),
             "evidence": {},
         }
 
