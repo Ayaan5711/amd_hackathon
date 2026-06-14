@@ -58,6 +58,14 @@ def _run_full_flow(client: TestClient, upload_resp) -> tuple[str, dict, dict]:
     assert "dashboard" in steps
     assert "report" in steps
 
+    # Live "agent thinking" trace (mock-mode rationale, streamed word-by-word)
+    # for the orchestrator step.
+    thinking_events = [
+        event for event in status["progress"] if event.get("step") == "orchestrator" and event.get("type") == "thinking"
+    ]
+    assert thinking_events
+    assert "".join(event["delta"] for event in thinking_events).strip()
+
     # Dashboard: risk distribution + survey-specific chart blocks
     dashboard_resp = client.get(f"/api/survey/dashboard/{run_id}")
     assert dashboard_resp.status_code == 200

@@ -22,9 +22,9 @@ from langgraph.graph import END, StateGraph
 
 from app.agent.prompts import build_orchestrator_prompt
 from app.agent.state import InvestigationState
-from app.config import MAX_TOKENS_ORCHESTRATOR, MAX_TOKENS_REPORT, VLLM_MODEL_ORCHESTRATOR, VLLM_MODEL_REPORT
+from app.config import LLM_MODE, MAX_TOKENS_ORCHESTRATOR, MAX_TOKENS_REPORT, VLLM_MODEL_ORCHESTRATOR, VLLM_MODEL_REPORT
 from app.packs.governance.llm_utils import parse_json_response
-from app.utils.llm_client import call_llm_async
+from app.utils.llm_client import call_llm_async, stream_with_thinking
 from app.utils.metrics import MetricsCollector
 
 if TYPE_CHECKING:
@@ -74,6 +74,15 @@ def _emit(config: RunnableConfig, step: str, message: str) -> None:
         progress_cb({"step": step, "message": message})
 
 
+def _emit_thinking(config: RunnableConfig, step: str, delta: str) -> None:
+    """Best-effort live "agent thinking" delta for the SSE progress stream - same
+    no-op behavior as `_emit`, but carries a raw `<think>` trace chunk (type
+    "thinking") rather than a static status message."""
+    progress_cb = config.get("configurable", {}).get("progress_cb")
+    if progress_cb:
+        progress_cb({"step": step, "type": "thinking", "delta": delta})
+
+
 def _triage_node(state: InvestigationState, config: RunnableConfig) -> dict[str, Any]:
     pack: AgentPack = config["configurable"]["pack"]
     df: pd.DataFrame = config["configurable"]["df"]
@@ -92,17 +101,42 @@ async def _orchestrator_node(state: InvestigationState, config: RunnableConfig) 
     prompt = build_orchestrator_prompt(summary)
 
     _emit(config, "orchestrator", "Orchestrator agent is reasoning about triage results and planning specialist dispatch...")
-    raw = await call_llm_async(
-        messages=[{"role": "user", "content": prompt}],
-        model=VLLM_MODEL_ORCHESTRATOR,
-        max_tokens=MAX_TOKENS_ORCHESTRATOR,
-        json_mode=True,
-        enable_thinking=True,
-        response_schema="orchestrator_plan",
-        agent="orchestrator",
-        metrics=metrics,
-        mock_fabricator=_mock_orchestrator_plan(summary),
-    )
+
+    if LLM_MODE == "mock":
+        # No real <think> trace to stream in mock mode - stream the same
+        # content-aware rationale the fabricator below will produce, word-by-word,
+        # so the progress UI still shows live "thinking" during local/demo runs.
+        fabricator = _mock_orchestrator_plan(summary)
+        mock_plan = fabricator([])
+        for word in mock_plan["rationale"].split(" "):
+            _emit_thinking(config, "orchestrator", word + " ")
+            await asyncio.sleep(0.02)
+        raw = await call_llm_async(
+            messages=[{"role": "user", "content": prompt}],
+            model=VLLM_MODEL_ORCHESTRATOR,
+            max_tokens=MAX_TOKENS_ORCHESTRATOR,
+            json_mode=True,
+            enable_thinking=True,
+            response_schema="orchestrator_plan",
+            agent="orchestrator",
+            metrics=metrics,
+            mock_fabricator=fabricator,
+        )
+    else:
+        raw = ""
+        async for kind, payload in stream_with_thinking(
+            messages=[{"role": "user", "content": prompt}],
+            model=VLLM_MODEL_ORCHESTRATOR,
+            max_tokens=MAX_TOKENS_ORCHESTRATOR,
+            agent="orchestrator",
+            metrics=metrics,
+            response_schema="orchestrator_plan",
+        ):
+            if kind == "thinking":
+                _emit_thinking(config, "orchestrator", payload)
+            else:
+                raw = payload
+
     verdict = parse_json_response(raw)
 
     return {

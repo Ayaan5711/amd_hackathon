@@ -58,6 +58,15 @@ def test_full_governance_flow():
         assert "dashboard" in steps
         assert "report" in steps
 
+        # Live "agent thinking" trace (mock-mode rationale, streamed word-by-word)
+        # for the orchestrator step.
+        thinking_events = [
+            event for event in status["progress"] if event.get("step") == "orchestrator" and event.get("type") == "thinking"
+        ]
+        assert thinking_events
+        assert all("delta" in event for event in thinking_events)
+        assert "".join(event["delta"] for event in thinking_events).strip()
+
         # 4. Dashboard
         dashboard_resp = client.get(f"/api/governance/dashboard/{run_id}")
         assert dashboard_resp.status_code == 200

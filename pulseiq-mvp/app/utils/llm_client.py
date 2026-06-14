@@ -8,6 +8,7 @@ LLM_MODE=vllm  -> OpenAI-compatible calls against an AMD vLLM server (Qwen3, etc
 
 import json
 import logging
+import re
 import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
@@ -295,3 +296,90 @@ async def stream_llm_response(
     except Exception as e:
         logger.error(f"LLM streaming failed: {e}")
         raise RuntimeError(f"LLM streaming failed: {e}")
+
+
+_THINK_CLOSED_PATTERN = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+_THINK_OPEN_PATTERN = re.compile(r"<think>(.*)", re.DOTALL)
+
+
+async def stream_with_thinking(
+    messages: list[dict[str, str]],
+    model: str = VLLM_MODEL_SYNTHESIS,
+    max_tokens: int = 800,
+    temperature: float = LLM_TEMPERATURE,
+    agent: str = "unknown",
+    metrics: "MetricsCollector | None" = None,
+    response_schema: str | None = None,
+):
+    """Stream a `<think>`-enabled completion, splitting the live `<think>...</think>`
+    reasoning trace from the rest of the response as it arrives.
+
+    Yields `("thinking", delta)` for each new chunk of reasoning text, then a final
+    `("done", full_content)` once the stream ends. `full_content` includes any
+    `<think>` block, same as the non-streaming `enable_thinking=True` callers expect
+    (e.g. via `parse_json_response`, which strips it before JSON-parsing).
+
+    Records one metrics entry (tokens/latency) for this call, same as
+    `call_llm_async`, using usage from the stream's final chunk when the server
+    supports `stream_options.include_usage` (falls back to estimates otherwise).
+
+    Mock mode has no `<think>` trace to stream - yields only `("done", "")`
+    immediately. Callers needing a schema-aware mock result should use
+    `call_llm_async(..., mock_fabricator=...)` for that branch instead.
+    """
+    if LLM_MODE == "mock":
+        yield ("done", "")
+        return
+
+    start = time.perf_counter()
+    client = get_llm_client().async_client
+    kwargs = _build_kwargs(messages, model, max_tokens, temperature, json_mode=False, enable_thinking=True)
+    kwargs["stream"] = True
+    kwargs["stream_options"] = {"include_usage": True}
+
+    full_content = ""
+    think_emitted = 0
+    think_closed = False
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+
+    try:
+        stream = await client.chat.completions.create(**kwargs)
+        async for chunk in stream:
+            if getattr(chunk, "usage", None):
+                tokens_in = chunk.usage.prompt_tokens
+                tokens_out = chunk.usage.completion_tokens
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta.content
+            if not delta:
+                continue
+            full_content += delta
+            if think_closed:
+                continue
+
+            closed_match = _THINK_CLOSED_PATTERN.search(full_content)
+            if closed_match:
+                full_think = closed_match.group(1)
+                if len(full_think) > think_emitted:
+                    yield ("thinking", full_think[think_emitted:])
+                think_closed = True
+                continue
+
+            open_match = _THINK_OPEN_PATTERN.search(full_content)
+            if open_match:
+                partial_think = open_match.group(1)
+                if len(partial_think) > think_emitted:
+                    yield ("thinking", partial_think[think_emitted:])
+                    think_emitted = len(partial_think)
+    except Exception as e:
+        logger.error(f"LLM streaming (with thinking) failed: {e}")
+        raise RuntimeError(f"LLM streaming failed: {e}")
+
+    latency_ms = (time.perf_counter() - start) * 1000
+    if tokens_in is None:
+        tokens_in = _estimate_tokens(_messages_text(messages))
+    if tokens_out is None:
+        tokens_out = _estimate_tokens(full_content)
+    _record(metrics, agent, model, tokens_in, tokens_out, latency_ms, True, response_schema)
+    yield ("done", full_content)

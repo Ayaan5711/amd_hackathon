@@ -177,6 +177,8 @@ function showProgressView(uploadData) {
         step.classList.remove('active', 'done');
         const msg = step.querySelector('.step-message');
         if (msg) msg.textContent = msg.dataset.default;
+        const thinking = step.querySelector('.step-thinking');
+        if (thinking) thinking.remove();
     });
 }
 
@@ -246,6 +248,21 @@ async function pollInvestigationStatus(runId) {
 function applyProgressEvent(event) {
     const idx = STEP_ORDER.indexOf(event.step);
     if (idx === -1) return;
+
+    if (event.type === 'thinking') {
+        const step = document.querySelector(`#progress-steps .step[data-step="${event.step}"]`);
+        const body = step && step.querySelector('.step-body');
+        if (!body) return;
+        let thinkingEl = body.querySelector('.step-thinking');
+        if (!thinkingEl) {
+            thinkingEl = document.createElement('div');
+            thinkingEl.className = 'step-thinking';
+            body.appendChild(thinkingEl);
+        }
+        thinkingEl.textContent += event.delta || '';
+        thinkingEl.scrollTop = thinkingEl.scrollHeight;
+        return;
+    }
 
     STEP_ORDER.forEach((name, i) => {
         const el = document.querySelector(`#progress-steps .step[data-step="${name}"]`);
