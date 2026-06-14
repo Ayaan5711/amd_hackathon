@@ -115,6 +115,8 @@ def test_full_survey_flow_with_demo_dataset():
         # Outlook_General/Outlook_Food_Prices Likert "response" columns.
         assert dashboard["demographic_summary"]["success"] is True
         assert dashboard["response_summary"]["success"] is True
+        assert dashboard["crosstabs"]
+        assert all(c["success"] for c in dashboard["crosstabs"])
 
 
 def test_full_survey_flow_with_uploaded_csv():
@@ -128,6 +130,7 @@ def test_full_survey_flow_with_uploaded_csv():
 
         # This dataset has no demographic columns (Gender/Age/City/...).
         assert dashboard["demographic_summary"] is None
+        assert dashboard["crosstabs"] is None
         # "Department" (4 options) is generically classified as a small-cardinality
         # "response" column even without a demographic column to cross it with.
         response_summary = dashboard["response_summary"]

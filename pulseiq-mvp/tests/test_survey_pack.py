@@ -474,6 +474,13 @@ class TestTcsReportAndDashboard:
         assert response_summary["success"] is True
         assert {q["column"] for q in response_summary["questions"]} == {"Outlook_General", "Outlook_Food_Prices"}
 
+        crosstabs = dashboard["crosstabs"]
+        assert crosstabs
+        assert all(c["success"] for c in crosstabs)
+        pairs = {(c["segment_column"], c["response_column"]) for c in crosstabs}
+        assert ("Gender", "Outlook_General") in pairs
+        assert ("Gender", "Outlook_Food_Prices") in pairs
+
     def test_executive_summary_has_demographic_sections(self, tcs_full_run):
         exec_summary = tcs_full_run["report_sections"]["executive_summary"]
         assert "## Demographic Profile" in exec_summary

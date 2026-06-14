@@ -311,13 +311,132 @@
 .segment-best .bar-fill { background: #4ade80; }
 .segment-worst .bar-fill { background: #fb923c; }
 
-/* Survey dashboard charts: demographic profile + response distribution */
-.demographic-fill { background: #c084fc; }
-.response-fill { background: #34d399; }
-
 .bar-range {
     color: var(--text-muted);
     font-size: 0.75em;
+}
+
+/* Survey dashboard charts: demographic profile donuts */
+.donut-block {
+    margin-bottom: 1.25rem;
+}
+
+.donut-block:last-child {
+    margin-bottom: 0;
+}
+
+.chart-subtitle {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.625rem;
+}
+
+.donut-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.donut-chart {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.donut-hole {
+    position: absolute;
+    inset: 18%;
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.25rem;
+}
+
+.donut-value {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.donut-caption {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Survey dashboard charts: shared legend for donuts + stacked bars */
+.chart-legend {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem 1rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+}
+
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-pct {
+    color: var(--text-muted);
+}
+
+/* Survey dashboard charts: response distribution + cross-tab stacked bars */
+.stacked-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.8125rem;
+}
+
+.stacked-bar {
+    flex: 1;
+    height: 10px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    display: flex;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.stacked-segment {
+    height: 100%;
+}
+
+.crosstab-card {
+    grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+    .crosstab-card {
+        grid-column: span 1;
+    }
 }
 
 .severity-badge {

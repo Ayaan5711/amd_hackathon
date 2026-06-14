@@ -38,6 +38,56 @@ const REPORT_ORDER = [
     'recommendations',
 ];
 
+// Shared color palette for donut / stacked-bar charts (demographic profile,
+// response distribution, segment cross-tabs). Cycled by option/value index so the
+// same option (e.g. "More than current") gets the same color across charts.
+const CHART_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#fbbf24', '#f87171', '#22d3ee', '#f472b6', '#a3e635'];
+
+function chartColor(index) {
+    return CHART_COLORS[index % CHART_COLORS.length];
+}
+
+// Builds `conic-gradient()` stops from a `[{value, percent}, ...]` distribution,
+// clamping the final stop to 100% to avoid gaps from rounding.
+function conicGradientStops(distribution) {
+    let acc = 0;
+    return distribution
+        .map((d, i) => {
+            const start = acc;
+            acc += d.percent;
+            const end = i === distribution.length - 1 ? 100 : acc;
+            return `${chartColor(i)} ${start}% ${end}%`;
+        })
+        .join(', ');
+}
+
+// Builds a `value -> color` map for a list of option strings, preserving order.
+function buildColorMap(options) {
+    const map = {};
+    options.forEach((opt, i) => {
+        map[opt] = chartColor(i);
+    });
+    return map;
+}
+
+function renderChartLegend(items) {
+    return `<ul class="chart-legend">${items
+        .map(
+            (item) => `
+        <li class="legend-item">
+            <span class="legend-swatch" style="background:${item.color}"></span>
+            ${escapeHtml(item.label)}${item.percent != null ? ` <span class="legend-pct">${item.percent}%</span>` : ''}
+        </li>`
+        )
+        .join('')}</ul>`;
+}
+
+function renderStackedBar(distribution, colorMap) {
+    return `<div class="stacked-bar">${distribution
+        .map((d) => `<div class="stacked-segment" style="width:${d.percent}%; background:${colorMap[d.value] || '#888'}" title="${escapeHtml(d.value)}: ${d.percent}%"></div>`)
+        .join('')}</div>`;
+}
+
 // DOM references
 const uploadView = document.getElementById('upload-view');
 const progressView = document.getElementById('progress-view');
@@ -328,6 +378,8 @@ function renderDashboard(dashboard) {
         })
         .join('');
 
+    const crosstabCharts = renderCrosstabCharts(dashboard.crosstabs);
+
     const topFindings = dashboard.top_findings || [];
     const topFindingsRows = topFindings
         .map(
@@ -360,6 +412,7 @@ function renderDashboard(dashboard) {
             ${renderDemographicSummaryChart(dashboard.demographic_summary)}
             ${renderResponseSummaryChart(dashboard.response_summary)}
         </div>
+        ${crosstabCharts ? `<div class="dashboard-grid">${crosstabCharts}</div>` : ''}
         <div class="dashboard-card">
             <h3>Responses Flagged for Review (High &amp; Critical)</h3>
             ${
@@ -427,44 +480,100 @@ function renderSegmentBreakdownChart(seg) {
         </div>`;
 }
 
+// Demographic Profile: one donut chart + legend per demographic column, showing
+// the FULL breakdown (every value), not just the dominant one.
 function renderDemographicSummaryChart(demo) {
     if (!demo || !demo.success || !demo.profiles || demo.profiles.length === 0) return '';
-    const rows = demo.profiles
+    const blocks = demo.profiles
         .map((p) => {
-            const pct = Math.max(0, Math.min(100, p.top_percent));
+            const stops = conicGradientStops(p.distribution);
+            const legend = renderChartLegend(
+                p.distribution.map((d, i) => ({ label: d.value, percent: d.percent, color: chartColor(i) }))
+            );
             return `
-            <div class="bar-row demographic-row">
-                <span class="bar-label">${p.column}</span>
-                <div class="bar-track"><div class="bar-fill demographic-fill" style="width:${pct}%"></div></div>
-                <span class="bar-count">${p.top_value} <span class="bar-range">(${p.top_percent}%)</span></span>
+            <div class="donut-block">
+                <h4 class="chart-subtitle">${escapeHtml(p.column)}</h4>
+                <div class="donut-row">
+                    <div class="donut-chart" style="background: conic-gradient(${stops})">
+                        <div class="donut-hole">
+                            <span class="donut-value">${p.top_percent}%</span>
+                            <span class="donut-caption">${escapeHtml(p.top_value)}</span>
+                        </div>
+                    </div>
+                    ${legend}
+                </div>
             </div>`;
         })
         .join('');
     return `
         <div class="dashboard-card">
             <h3>Demographic Profile</h3>
-            ${rows}
+            ${blocks}
         </div>`;
 }
 
+// Response Distribution: one 100%-stacked bar per Likert-style question, showing
+// the FULL option breakdown, plus a shared legend (options that recur across
+// questions, e.g. the same 5-point Likert scale, get the same color).
 function renderResponseSummaryChart(resp) {
     if (!resp || !resp.success || !resp.questions || resp.questions.length === 0) return '';
+
+    const allOptions = [];
+    resp.questions.forEach((q) => {
+        q.options.forEach((opt) => {
+            if (!allOptions.includes(opt)) allOptions.push(opt);
+        });
+    });
+    const colorMap = buildColorMap(allOptions);
+
     const rows = resp.questions
-        .map((q) => {
-            const pct = Math.max(0, Math.min(100, q.dominant_percent));
-            return `
-            <div class="bar-row response-row">
-                <span class="bar-label">${q.column}</span>
-                <div class="bar-track"><div class="bar-fill response-fill" style="width:${pct}%"></div></div>
-                <span class="bar-count">${q.dominant_value} <span class="bar-range">(${q.dominant_percent}%)</span></span>
-            </div>`;
-        })
+        .map(
+            (q) => `
+            <div class="stacked-bar-row">
+                <span class="bar-label">${escapeHtml(q.column)}</span>
+                ${renderStackedBar(q.distribution, colorMap)}
+                <span class="bar-count">${escapeHtml(q.dominant_value)} <span class="bar-range">(${q.dominant_percent}%)</span></span>
+            </div>`
+        )
         .join('');
+
+    const legend = renderChartLegend(allOptions.map((opt) => ({ label: opt, color: colorMap[opt] })));
+
     return `
         <div class="dashboard-card">
             <h3>Response Distribution</h3>
             ${rows}
+            ${legend}
         </div>`;
+}
+
+// Full Demographic Analysis: for each cross-tab (e.g. "Outlook_General by Gender"),
+// one 100%-stacked bar per segment value, segmented by response option, plus a
+// shared legend.
+function renderCrosstabCharts(crosstabs) {
+    if (!crosstabs || crosstabs.length === 0) return '';
+    return crosstabs
+        .map((ct) => {
+            const colorMap = buildColorMap(ct.options);
+            const rows = ct.segments
+                .map(
+                    (seg) => `
+                <div class="stacked-bar-row">
+                    <span class="bar-label">${escapeHtml(seg.segment)}</span>
+                    ${renderStackedBar(seg.distribution, colorMap)}
+                    <span class="bar-count">${escapeHtml(seg.dominant_value)} <span class="bar-range">(${seg.dominant_percent}%)</span></span>
+                </div>`
+                )
+                .join('');
+            const legend = renderChartLegend(ct.options.map((opt) => ({ label: opt, color: colorMap[opt] })));
+            return `
+            <div class="dashboard-card crosstab-card">
+                <h3>${escapeHtml(ct.response_column)} by ${escapeHtml(ct.segment_column)}</h3>
+                ${rows}
+                ${legend}
+            </div>`;
+        })
+        .join('');
 }
 
 function renderReport(report) {

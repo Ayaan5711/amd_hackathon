@@ -15,6 +15,11 @@ chart-ready blocks the frontend renders as bar charts:
   column, or `None` if the dataset has none.
   `{success, total_responses, questions: [{column, options, distribution,
   dominant_value, dominant_percent}, ...]}`.
+- `crosstabs`: up to 3 demographic columns x first 2 response columns of
+  `build_segment_response_crosstab` results ("Full Demographic Analysis" charts), or
+  `None` if there are no demographic/response columns to cross.
+  `list[{success, segment_column, response_column, options,
+  segments: [{segment, count, distribution, dominant_value, dominant_percent}, ...]}]`.
 
 `category_labels` gives the frontend survey-flavored copy for the governance
 categories (`pii` -> PII in open-text responses, `compliance` -> outlier responses
@@ -31,6 +36,7 @@ from app.packs.governance.dashboard import dashboard_fn
 from app.packs.survey.categorical import (
     build_demographic_profile,
     build_response_summary,
+    build_segment_response_crosstab,
     split_demographic_and_response_columns,
 )
 from app.packs.survey.common import (
@@ -102,6 +108,26 @@ def _response_summary(df: Any, schema: dict[str, Any]) -> dict[str, Any] | None:
     return result if result["success"] else None
 
 
+def _crosstabs(df: Any, schema: dict[str, Any]) -> list[dict[str, Any]] | None:
+    """Up to 3 demographic columns x first 2 response columns of cross-tabs (the
+    "Full demographic analysis" charts), or `None` if there are no
+    demographic/response columns to cross."""
+    categorical_cols = get_categorical_columns(schema)
+    exclude = pick_excluded_columns(categorical_cols)
+    demographic_cols, response_cols = split_demographic_and_response_columns(df, schema, categorical_cols, exclude=exclude)
+    if not demographic_cols or not response_cols:
+        return None
+
+    tables = [
+        result
+        for segment_col in demographic_cols[:3]
+        for response_col in response_cols[:2]
+        for result in (build_segment_response_crosstab(df, schema, segment_col, response_col),)
+        if result["success"]
+    ]
+    return tables or None
+
+
 def survey_dashboard_fn(
     entries: list[LogEntry],
     triage_results: list[TriageResult],
@@ -117,4 +143,5 @@ def survey_dashboard_fn(
     dashboard["segment_breakdown"] = _segment_breakdown(df, schema)
     dashboard["demographic_summary"] = _demographic_summary(df, schema)
     dashboard["response_summary"] = _response_summary(df, schema)
+    dashboard["crosstabs"] = _crosstabs(df, schema)
     return dashboard
