@@ -115,6 +115,49 @@ def _bytes_to_gb(value: Any) -> float | None:
     return round(raw_bytes / (1024**3), 2)
 
 
+# rocm-smi often reports only a raw PCI device ID or "N/A" for the card name -
+# map the ones we know about (and their GFX architecture) to friendly names.
+_AMD_DEVICE_NAMES: dict[str, str] = {
+    "0x74a1": "AMD Instinct MI300X",
+}
+_AMD_GFX_NAMES: dict[str, str] = {
+    "gfx908": "AMD Instinct MI100",
+    "gfx90a": "AMD Instinct MI200 series",
+    "gfx942": "AMD Instinct MI300X",
+}
+
+
+def _resolve_gpu_name(card: dict[str, Any]) -> str | None:
+    product_name: str | None = None
+    card_series: str | None = None
+    card_model: str | None = None
+    gfx_version: str | None = None
+
+    for key, value in card.items():
+        key_lower = key.lower()
+        text = str(value).strip()
+        if "product name" in key_lower or "device name" in key_lower:
+            product_name = text
+        elif "card series" in key_lower:
+            card_series = text
+        elif "card model" in key_lower:
+            card_model = text
+        elif "gfx version" in key_lower:
+            gfx_version = text
+
+    for candidate in (product_name, card_series):
+        if candidate and candidate.upper() != "N/A" and not candidate.lower().startswith("0x"):
+            return candidate
+    if card_model and card_model.lower() in _AMD_DEVICE_NAMES:
+        return _AMD_DEVICE_NAMES[card_model.lower()]
+    if gfx_version and gfx_version.lower() in _AMD_GFX_NAMES:
+        return _AMD_GFX_NAMES[gfx_version.lower()]
+    for candidate in (product_name, card_series, card_model, gfx_version):
+        if candidate and candidate.upper() != "N/A":
+            return candidate
+    return None
+
+
 def _parse_gpu_summary(raw: dict[str, Any]) -> dict[str, Any]:
     """Best-effort extraction of GPU name/utilization/VRAM from `rocm-smi --json`
     output. Field names vary across ROCm versions, so every value defaults to
@@ -131,11 +174,11 @@ def _parse_gpu_summary(raw: dict[str, Any]) -> dict[str, Any]:
     if not card:
         return summary
 
+    summary["gpu_name"] = _resolve_gpu_name(card)
+
     for key, value in card.items():
         key_lower = key.lower()
-        if any(s in key_lower for s in ("card series", "card model", "product name", "device name")):
-            summary["gpu_name"] = value
-        elif "gpu use" in key_lower or "gpu busy" in key_lower:
+        if "gpu use" in key_lower or "gpu busy" in key_lower:
             summary["gpu_utilization_pct"] = _to_float(value)
         elif "vram total used memory" in key_lower:
             summary["vram_used_gb"] = _bytes_to_gb(value)

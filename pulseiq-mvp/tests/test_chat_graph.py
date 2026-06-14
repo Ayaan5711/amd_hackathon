@@ -122,9 +122,11 @@ class TestEfficiencyMetrics:
         assert tool_result["success"] is True
         assert tool_result["calls_by_agent"] == full_run["metrics"]["calls_by_agent"]
         assert tool_result["efficiency"]["reduction_pct"] > 0
-        assert str(tool_result["efficiency"]["reduction_pct"]) in result["response_narrative"] or str(
-            tool_result["total_calls"]
-        ) in result["response_narrative"]
+        assert tool_result["total_latency_ms"] == full_run["metrics"]["total_latency_ms"]
+        assert tool_result["avg_latency_ms"] == round(
+            tool_result["total_latency_ms"] / tool_result["total_calls"], 1
+        )
+        assert str(tool_result["avg_latency_ms"]) in result["response_narrative"]
 
 
 class TestGeneralConversation:

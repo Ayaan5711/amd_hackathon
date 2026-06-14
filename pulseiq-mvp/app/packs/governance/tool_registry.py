@@ -225,10 +225,14 @@ def compare_categories(investigation: InvestigationState, **_: Any) -> dict[str,
 
 def get_accuracy_metrics(investigation: InvestigationState, **_: Any) -> dict[str, Any]:
     metrics = investigation.get("metrics", {})
+    total_calls = metrics.get("total_calls", 0)
+    total_latency_ms = metrics.get("total_latency_ms", 0)
     return {
         "success": True,
-        "total_calls": metrics.get("total_calls", 0),
+        "total_calls": total_calls,
         "total_tokens": metrics.get("total_tokens", 0),
+        "total_latency_ms": total_latency_ms,
+        "avg_latency_ms": round(total_latency_ms / total_calls, 1) if total_calls else 0,
         "calls_by_agent": metrics.get("calls_by_agent", {}),
         "efficiency": metrics.get("efficiency"),
     }

@@ -228,7 +228,8 @@ function renderOneEvidenceChart(entry) {
                 pct: (count / total) * 100,
                 count,
             }));
-            return renderBarChart('LLM Calls by Agent', rows);
+            const avgLatency = result.avg_latency_ms != null ? ` (avg ${result.avg_latency_ms}ms/call)` : '';
+            return renderBarChart(`LLM Calls by Agent${avgLatency}`, rows);
         }
         default:
             return '';

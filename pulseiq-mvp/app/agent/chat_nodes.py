@@ -193,7 +193,11 @@ def _summarize_tool_result(tool_name: str, data: dict[str, Any]) -> str:
         return f"Category comparison: {data['comparison']}; most flagged: {data['most_flagged_category']}."
     if tool_name == "get_accuracy_metrics":
         eff = data.get("efficiency") or {}
-        return f"This run made {data['total_calls']} LLM calls ({eff.get('reduction_pct', 'N/A')}% reduction vs. naive)."
+        return (
+            f"This run made {data['total_calls']} LLM calls "
+            f"({eff.get('reduction_pct', 'N/A')}% reduction vs. naive), "
+            f"averaging {data.get('avg_latency_ms', 0)}ms per call."
+        )
     return str(data)
 
 
