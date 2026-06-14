@@ -13,7 +13,7 @@ import asyncio
 import pandas as pd
 import pytest
 
-from app.agent import invoke_governance_chat, run_investigation
+from app.agent import invoke_governance_chat, run_investigation, stream_governance_chat_turn
 from app.config import SYNTHETIC_LOGS_DIR
 from app.packs.governance import GOVERNANCE_PACK
 
@@ -40,6 +40,22 @@ def _chat(full_run, message, history=None):
             history=history or [],
         )
     )
+
+
+def _chat_stream(full_run, message, history=None):
+    async def _collect():
+        events = []
+        async for event in stream_governance_chat_turn(
+            GOVERNANCE_PACK,
+            full_run,
+            session_id="chat-session",
+            user_message=message,
+            history=history or [],
+        ):
+            events.append(event)
+        return events
+
+    return asyncio.run(_collect())
 
 
 def _first_log_id(full_run, category: str) -> str:
@@ -136,3 +152,32 @@ class TestGeneralConversation:
         assert result["intent"] == "general"
         assert "investigation" in result["response_narrative"].lower()
         assert result["follow_up_suggestions"]
+
+
+class TestStreamingChatTurn:
+    """stream_governance_chat_turn (option #2: live 'agent thinking' trace) -
+    mock-mode coverage of the event shapes consumed by the chat_stream SSE
+    endpoints (app/api/governance_routes.py, app/api/survey_routes.py)."""
+
+    def test_tool_question_streams_thinking_then_complete(self, full_run):
+        events = _chat_stream(full_run, "What's the overall risk distribution?")
+
+        assert events[-1]["type"] == "complete"
+        thinking_events = [e for e in events[:-1] if e["type"] == "thinking"]
+        assert thinking_events
+        assert all("delta" in e["data"] for e in thinking_events)
+
+        complete_data = events[-1]["data"]
+        assert complete_data["tool_calls"] == [{"tool_name": "get_risk_distribution", "arguments": {}}]
+        assert complete_data["narrative"]
+        chart_data = complete_data["evidence"]["chart_data"]
+        assert chart_data and chart_data[0]["tool_name"] == "get_risk_distribution"
+
+    def test_general_question_skips_thinking(self, full_run):
+        events = _chat_stream(full_run, "Hello there!")
+
+        assert len(events) == 1
+        assert events[0]["type"] == "complete"
+        assert events[0]["data"]["tool_calls"] == []
+        assert "investigation" in events[0]["data"]["narrative"].lower()
+        assert events[0]["data"]["follow_up_suggestions"]

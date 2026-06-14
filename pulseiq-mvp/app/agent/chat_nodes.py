@@ -10,6 +10,7 @@ that supplies a governance-shaped chat tool set - no pack-specific branching her
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from typing import TYPE_CHECKING, Any
@@ -19,9 +20,9 @@ from langgraph.graph import END, StateGraph
 
 from app.agent.prompts import build_governance_chat_intent_prompt, build_governance_chat_synthesis_prompt
 from app.agent.state import ChatState, InvestigationState, ToolCall, ToolResult
-from app.config import MAX_TOKENS_INTENT, MAX_TOKENS_SYNTHESIS, VLLM_MODEL_INTENT, VLLM_MODEL_SYNTHESIS
+from app.config import LLM_MODE, MAX_TOKENS_INTENT, MAX_TOKENS_SYNTHESIS, VLLM_MODEL_INTENT, VLLM_MODEL_SYNTHESIS
 from app.packs.governance.llm_utils import parse_json_response
-from app.utils.llm_client import call_llm_async
+from app.utils.llm_client import call_llm_async, stream_llm_response
 
 if TYPE_CHECKING:
     # Deferred for the same reason as investigation_graph.py's AgentPack import:
@@ -34,6 +35,9 @@ logger = logging.getLogger(__name__)
 _LOG_ID_PATTERN = re.compile(r"LOG-[A-Za-z0-9_-]+", re.IGNORECASE)
 _CATEGORY_PATTERN = re.compile(r"\b(pii|security|injection|compliance|hallucination)\b", re.IGNORECASE)
 _CATEGORY_ALIASES = {"injection": "security"}
+
+_THINK_CLOSED_PATTERN = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+_THINK_OPEN_PATTERN = re.compile(r"<think>(.*)", re.DOTALL)
 
 
 def _investigation_summary(investigation: InvestigationState) -> dict[str, Any]:
@@ -353,3 +357,168 @@ async def invoke_governance_chat(
     config = {"configurable": {"pack": pack, "investigation": investigation}}
     result = await graph.ainvoke(initial_state, config=config)
     return result
+
+
+async def stream_governance_chat_turn(
+    pack: AgentPack,
+    investigation: InvestigationState,
+    session_id: str,
+    user_message: str,
+    history: list[dict[str, str]],
+):
+    """Async-generator sibling of `invoke_governance_chat` that streams Qwen3's
+    `<think>...</think>` reasoning trace live during the synthesis step.
+
+    Reuses the same intent/tool node logic, then - instead of one
+    `call_llm_async` for synthesis - drives `stream_llm_response` with
+    `enable_thinking=True` and yields `{"type": "thinking", "data": {"delta": ...}}`
+    events as the reasoning trace arrives, followed by a single
+    `{"type": "complete", "data": {...}}` event shaped like
+    `invoke_governance_chat`'s return value (`narrative`, `follow_up_suggestions`,
+    `evidence`, `tool_calls`). Paths that don't need an LLM call (clarification,
+    no tool calls, all tools failed) skip straight to the `complete` event.
+    """
+    state: ChatState = {
+        "session_id": session_id,
+        "user_message": user_message,
+        "history": history,
+        "intent": None,
+        "tool_calls": [],
+        "clarification_needed": False,
+        "clarification_options": [],
+        "tool_results": [],
+        "response_narrative": "",
+        "follow_up_suggestions": [],
+        "evidence": {},
+    }
+    config = {"configurable": {"pack": pack, "investigation": investigation}}
+
+    intent_delta = await _intent_node(state, config)
+    state.update(intent_delta)
+
+    tool_calls_list = [{"tool_name": tc["tool_name"], "arguments": tc["arguments"]} for tc in state["tool_calls"]]
+
+    if state.get("clarification_needed"):
+        yield {
+            "type": "complete",
+            "data": {
+                "narrative": "I need a bit more information to help you with that.",
+                "follow_up_suggestions": state.get("clarification_options", []),
+                "evidence": {},
+                "tool_calls": tool_calls_list,
+            },
+        }
+        return
+
+    if not state["tool_calls"]:
+        yield {
+            "type": "complete",
+            "data": {
+                "narrative": pack.chat_fallback_narrative,
+                "follow_up_suggestions": list(pack.chat_fallback_suggestions),
+                "evidence": {},
+                "tool_calls": tool_calls_list,
+            },
+        }
+        return
+
+    tool_delta = _tool_node(state, config)
+    state.update(tool_delta)
+
+    all_failed = all(not r["success"] for r in state["tool_results"])
+    if all_failed:
+        errors = [r.get("error", "Unknown error") for r in state["tool_results"]]
+        yield {
+            "type": "complete",
+            "data": {
+                "narrative": (
+                    f"I wasn't able to look that up. Issues encountered: {'; '.join(str(e) for e in errors)}."
+                ),
+                "follow_up_suggestions": [
+                    "What's the overall risk distribution?",
+                    "Which category has the most findings?",
+                ],
+                "evidence": {"errors": errors},
+                "tool_calls": tool_calls_list,
+            },
+        }
+        return
+
+    prompt = build_governance_chat_synthesis_prompt(
+        user_message=state["user_message"],
+        tool_results=state["tool_results"],
+        history=state["history"],
+    )
+    chart_data = _chart_data(state)
+
+    if LLM_MODE == "mock":
+        thinking_text = (
+            f"Mock mode (LLM_MODE=mock): reviewing {len(state['tool_results'])} tool result(s) "
+            f'to compose a response to "{state["user_message"]}"...'
+        )
+        for word in thinking_text.split(" "):
+            yield {"type": "thinking", "data": {"delta": word + " "}}
+            await asyncio.sleep(0.02)
+        synthesis = _mock_chat_synthesis(state)([{"role": "user", "content": prompt}])
+        yield {
+            "type": "complete",
+            "data": {
+                "narrative": synthesis.get("narrative", ""),
+                "follow_up_suggestions": synthesis.get("follow_up_suggestions", []),
+                "evidence": {**synthesis.get("evidence", {}), "chart_data": chart_data},
+                "tool_calls": tool_calls_list,
+            },
+        }
+        return
+
+    full_content = ""
+    think_emitted = 0
+    think_closed = False
+    async for chunk in stream_llm_response(
+        messages=[{"role": "user", "content": prompt}],
+        model=VLLM_MODEL_SYNTHESIS,
+        max_tokens=MAX_TOKENS_SYNTHESIS,
+        enable_thinking=True,
+    ):
+        full_content += chunk
+        if think_closed:
+            continue
+
+        closed_match = _THINK_CLOSED_PATTERN.search(full_content)
+        if closed_match:
+            remaining = closed_match.group(1)[think_emitted:]
+            if remaining:
+                yield {"type": "thinking", "data": {"delta": remaining}}
+            think_closed = True
+            continue
+
+        open_match = _THINK_OPEN_PATTERN.search(full_content)
+        if open_match:
+            new_text = open_match.group(1)[think_emitted:]
+            if new_text:
+                yield {"type": "thinking", "data": {"delta": new_text}}
+                think_emitted += len(new_text)
+
+    synthesis = parse_json_response(full_content)
+    if synthesis:
+        yield {
+            "type": "complete",
+            "data": {
+                "narrative": synthesis.get("narrative", ""),
+                "follow_up_suggestions": synthesis.get("follow_up_suggestions", []),
+                "evidence": {**synthesis.get("evidence", {}), "chart_data": chart_data},
+                "tool_calls": tool_calls_list,
+            },
+        }
+        return
+
+    parts = [_summarize_tool_result(r["tool_name"], r["result"]) for r in state["tool_results"] if r["success"]]
+    yield {
+        "type": "complete",
+        "data": {
+            "narrative": " ".join(parts) if parts else "Here are the results.",
+            "follow_up_suggestions": ["Can you tell me more about this?"],
+            "evidence": {"chart_data": chart_data},
+            "tool_calls": tool_calls_list,
+        },
+    }

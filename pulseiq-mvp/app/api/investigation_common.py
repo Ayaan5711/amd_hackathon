@@ -20,6 +20,7 @@ import pandas as pd
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 
+from app.agent.chat_nodes import stream_governance_chat_turn
 from app.agent.investigation_graph import get_investigation_graph
 from app.session.run_store import InvestigationRun, get_run_store
 from app.utils.metrics import MetricsCollector
@@ -104,6 +105,44 @@ async def run_investigation_task(run_id: str, df: pd.DataFrame, pack: "AgentPack
     except Exception as e:
         logger.error(f"Investigation run {run_id} failed: {e}")
         run_store.set_error(run_id, str(e))
+
+
+async def stream_chat_response(run_id: str, pack: "AgentPack", message: str) -> StreamingResponse:
+    """SSE stream of one "talk to results" chat turn: `thinking` events carrying
+    live deltas of Qwen3's `<think>` reasoning trace, then a single `complete`
+    event shaped like the non-streaming `/chat/{run_id}` response body."""
+    run = get_run_or_404(run_id)
+    if run.status == "running":
+        raise HTTPException(status_code=409, detail="Investigation still running")
+    if run.status == "error":
+        raise HTTPException(status_code=500, detail=run.error or "Investigation failed")
+    assert run.result is not None
+
+    run_store = get_run_store()
+
+    async def event_generator():
+        final_data: dict[str, Any] | None = None
+        try:
+            async for event in stream_governance_chat_turn(
+                pack, run.result, run_id, message, run.chat_history
+            ):
+                if event["type"] == "complete":
+                    final_data = event["data"]
+                yield f"event: {event['type']}\ndata: {json.dumps(event['data'])}\n\n"
+        except Exception as e:
+            logger.error(f"Chat stream error for run {run_id}: {e}")
+            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+            return
+
+        if final_data is not None:
+            run_store.append_chat_history(run_id, "user", message)
+            run_store.append_chat_history(run_id, "assistant", final_data.get("narrative", ""))
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
 
 
 def get_run_or_404(run_id: str) -> InvestigationRun:

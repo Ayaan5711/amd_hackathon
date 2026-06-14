@@ -796,28 +796,81 @@ async function sendChatMessage() {
     chatInput.style.height = 'auto';
     chatProcessing = true;
     chatSendBtn.disabled = true;
-    showTypingIndicator();
+    const thinkingEl = showThinkingMessage();
 
     try {
-        const data = await fetchJSON(`${API_BASE}/chat/${currentRunId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message }),
-        });
-        removeTypingIndicator();
-        addChatMessage('assistant', data.response, {
-            followUps: data.follow_up_suggestions,
-            toolCalls: data.tool_calls,
-            evidence: data.evidence,
+        const finalData = await streamChatTurn(
+            `${API_BASE}/chat_stream/${currentRunId}`,
+            message,
+            (delta) => updateThinkingMessage(thinkingEl, delta)
+        );
+        removeThinkingMessage(thinkingEl);
+        addChatMessage('assistant', finalData.narrative, {
+            followUps: finalData.follow_up_suggestions,
+            toolCalls: finalData.tool_calls,
+            evidence: finalData.evidence,
+            thinking: thinkingEl.dataset.thinking,
         });
     } catch (error) {
-        removeTypingIndicator();
+        removeThinkingMessage(thinkingEl);
         addChatMessage('assistant', `Sorry, I encountered an error: ${error.message}`);
     } finally {
         chatProcessing = false;
         chatSendBtn.disabled = false;
         chatInput.focus();
     }
+}
+
+// Reads an SSE chat_stream response (POST body, so EventSource can't be used):
+// each `thinking` event's delta is forwarded to `onThinking` and accumulated on
+// `thinkingEl.dataset.thinking`; resolves with the `complete` event's data.
+async function streamChatTurn(url, message, onThinking) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || `Request to ${url} failed`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalData = null;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let sepIndex;
+        while ((sepIndex = buffer.indexOf('\n\n')) !== -1) {
+            const rawEvent = buffer.slice(0, sepIndex);
+            buffer = buffer.slice(sepIndex + 2);
+
+            let eventType = 'message';
+            let dataStr = '';
+            for (const line of rawEvent.split('\n')) {
+                if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+                else if (line.startsWith('data: ')) dataStr += line.slice(6);
+            }
+            if (!dataStr) continue;
+            const data = JSON.parse(dataStr);
+
+            if (eventType === 'thinking') {
+                onThinking(data.delta);
+            } else if (eventType === 'complete') {
+                finalData = data;
+            } else if (eventType === 'error') {
+                throw new Error(data.error || 'Chat stream error');
+            }
+        }
+    }
+
+    if (!finalData) throw new Error('Chat stream ended without a response');
+    return finalData;
 }
 
 function addChatMessage(role, content, options = {}) {
@@ -841,6 +894,15 @@ function addChatMessage(role, content, options = {}) {
             toolsDiv.appendChild(badge);
         });
         contentDiv.appendChild(toolsDiv);
+    }
+
+    if (options.thinking) {
+        const thinkingDiv = document.createElement('details');
+        thinkingDiv.className = 'thinking-trace';
+        thinkingDiv.innerHTML = `<summary> Agent's reasoning</summary><div class="thinking-text">${escapeHtml(
+            options.thinking
+        )}</div>`;
+        contentDiv.appendChild(thinkingDiv);
     }
 
     const textDiv = document.createElement('div');
@@ -903,22 +965,35 @@ function formatToolName(name) {
         .join(' ');
 }
 
-function showTypingIndicator() {
-    const indicator = document.createElement('div');
-    indicator.className = 'message assistant';
-    indicator.id = 'chat-typing-indicator';
-    indicator.innerHTML = `
+// Live "agent is thinking" bubble for chat_stream: shows Qwen3's <think> trace
+// streaming in word-by-word while the synthesis call is in flight.
+function showThinkingMessage() {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant thinking-message';
+    messageDiv.dataset.thinking = '';
+    messageDiv.innerHTML = `
         <div class="message-avatar">AI</div>
         <div class="message-content">
-            <div class="typing-indicator"><span></span><span></span><span></span></div>
+            <div class="thinking-trace-live">
+                <span class="thinking-label"> Thinking...</span>
+                <span class="thinking-text"></span>
+            </div>
         </div>`;
-    chatMessages.appendChild(indicator);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return messageDiv;
+}
+
+function updateThinkingMessage(el, delta) {
+    if (!el || !delta) return;
+    el.dataset.thinking += delta;
+    const textEl = el.querySelector('.thinking-text');
+    if (textEl) textEl.textContent = el.dataset.thinking;
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function removeTypingIndicator() {
-    const indicator = document.getElementById('chat-typing-indicator');
-    if (indicator) indicator.remove();
+function removeThinkingMessage(el) {
+    if (el) el.remove();
 }
 
 // ---------------------------------------------------------------------------

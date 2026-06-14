@@ -25,6 +25,7 @@ from app.api.governance_schemas import (
 from app.api.investigation_common import (
     get_run_or_404,
     run_investigation_task,
+    stream_chat_response,
     stream_investigation,
 )
 from app.api.survey_schemas import SurveyUploadResponse
@@ -194,3 +195,11 @@ async def survey_chat(run_id: str, request: GovernanceChatRequest) -> Governance
             {"tool_name": tc["tool_name"], "arguments": tc["arguments"]} for tc in result.get("tool_calls", [])
         ],
     )
+
+
+@router.post("/chat_stream/{run_id}")
+async def survey_chat_stream(run_id: str, request: GovernanceChatRequest) -> StreamingResponse:
+    """SSE variant of /chat/{run_id}: streams Qwen3's live <think> reasoning trace
+    as `thinking` events, followed by a single `complete` event with the same
+    shape (minus `run_id`) as GovernanceChatResponse."""
+    return await stream_chat_response(run_id, SURVEY_PACK, request.message)
