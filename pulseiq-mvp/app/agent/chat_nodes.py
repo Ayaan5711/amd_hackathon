@@ -105,6 +105,11 @@ async def _intent_node(state: ChatState, config: RunnableConfig) -> dict[str, An
         investigation_summary=_investigation_summary(investigation),
         history=state["history"],
     )
+    if pack.chat_intent_fn is not None:
+        mock_fabricator = pack.chat_intent_fn(state["user_message"], pack.chat_tool_registry, investigation)
+    else:
+        mock_fabricator = _mock_chat_intent(state["user_message"], pack.chat_tool_registry)
+
     raw = await call_llm_async(
         messages=[{"role": "user", "content": prompt}],
         model=VLLM_MODEL_INTENT,
@@ -113,7 +118,7 @@ async def _intent_node(state: ChatState, config: RunnableConfig) -> dict[str, An
         enable_thinking=False,
         response_schema="chat_intent",
         agent="chat_intent",
-        mock_fabricator=_mock_chat_intent(state["user_message"], pack.chat_tool_registry),
+        mock_fabricator=mock_fabricator,
     )
     classification = parse_json_response(raw)
 

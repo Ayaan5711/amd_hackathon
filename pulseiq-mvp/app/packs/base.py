@@ -9,40 +9,46 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
-from app.agent.state import LogEntry, SpecialistFinding, TriageResult
 from app.utils.csv_loader import df_to_log_entries
 from app.utils.llm_client import MockFabricator
+
+if TYPE_CHECKING:
+    # Deferred to type-checking only: `app.agent.state` is a submodule of
+    # `app.agent`, and importing it at module load time would run
+    # `app/agent/__init__.py`, which imports back into `app.packs.governance`
+    # (which imports `AgentPack` from this module) - a circular import.
+    from app.agent.state import InvestigationState, LogEntry, SpecialistFinding, TriageResult
 
 # Converts the uploaded DataFrame into the LogEntry-shaped dicts the graph and
 # specialists operate on. Defaults to the governance log-batch mapping
 # (log_id/user_prompt/ai_response columns); other packs (e.g. Survey) provide
 # their own mapping for non-log data.
-EntriesFn = Callable[[pd.DataFrame], list[LogEntry]]
+EntriesFn = Callable[[pd.DataFrame], "list[LogEntry]"]
 
 # Cheap, no-LLM pass over every uploaded entry. Produces the per-entry signals
 # the orchestrator uses to decide what (if anything) needs specialist review.
-TriageFn = Callable[[pd.DataFrame, dict[str, Any]], list[TriageResult]]
+TriageFn = Callable[[pd.DataFrame, dict[str, Any]], "list[TriageResult]"]
 
 # A specialist agent: given one flagged log entry plus shared context
 # (e.g. retrieved policy chunks, metrics collector), returns its finding.
-SpecialistFn = Callable[[LogEntry, dict[str, Any]], Awaitable[SpecialistFinding]]
+SpecialistFn = Callable[["LogEntry", dict[str, Any]], "Awaitable[SpecialistFinding]"]
 
 # Builds the investigation_plan ([{"log_id": ..., "agent": ...}, ...]) from the
 # triage results - either directly (heuristic) or as input to an orchestrator prompt.
-DispatchPlanFn = Callable[[list[TriageResult], dict[str, Any]], list[dict[str, str]]]
+DispatchPlanFn = Callable[["list[TriageResult]", dict[str, Any]], list[dict[str, str]]]
 
 # Pure aggregation: triage + specialist findings -> per-entry risk scores plus
 # a dataset-level summary. No LLM calls.
-RiskScoringFn = Callable[[list[TriageResult], list[SpecialistFinding]], dict[str, Any]]
+RiskScoringFn = Callable[["list[TriageResult]", "list[SpecialistFinding]"], dict[str, Any]]
 
 # Builds the dashboard JSON consumed by the frontend from the full set of
 # investigation artifacts (entries, triage, findings, risk scores, metrics).
 DashboardFn = Callable[
-    [list[LogEntry], list[TriageResult], list[SpecialistFinding], dict[str, Any], dict[str, Any]],
+    ["list[LogEntry]", "list[TriageResult]", "list[SpecialistFinding]", dict[str, Any], dict[str, Any]],
     dict[str, Any],
 ]
 
@@ -54,6 +60,12 @@ ReportSectionPromptFn = Callable[[dict[str, Any]], tuple[str, MockFabricator]]
 
 # Chat tool implementation over the completed investigation results.
 ChatToolFn = Callable[..., dict[str, Any]]
+
+# Builds a content-aware mock fabricator for the chat intent classifier, given the
+# user's message, the pack's chat tool registry, and the completed investigation.
+# Lets each pack route chat questions to its own tools in LLM_MODE=mock. If unset,
+# the chat graph falls back to the governance-flavored `_mock_chat_intent`.
+ChatIntentFn = Callable[[str, list[dict[str, Any]], "InvestigationState"], MockFabricator]
 
 
 @dataclass
@@ -83,3 +95,6 @@ class AgentPack:
     # "Talk to results" chat layer - MCP-shaped tool registry + implementations.
     chat_tool_registry: list[dict[str, Any]] = field(default_factory=list)
     chat_tool_functions: dict[str, ChatToolFn] = field(default_factory=dict)
+
+    # Optional pack-specific mock intent classifier (see ChatIntentFn above).
+    chat_intent_fn: ChatIntentFn | None = None

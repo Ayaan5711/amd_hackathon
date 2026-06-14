@@ -158,5 +158,7 @@ RISK_SEVERITY_DEFAULT: str = "low"
 # =============================================================================
 DATA_DIR: Path = BASE_DIR / "app" / "data"
 SYNTHETIC_LOGS_DIR: Path = DATA_DIR / "synthetic_logs"
+SURVEY_DEMO_DIR: Path = DATA_DIR / "survey_demo"
+SURVEY_DEMO_PATH: Path = SURVEY_DEMO_DIR / "responses.csv"
 POLICIES_DIR: Path = DATA_DIR / "policies"
 CHROMA_PERSIST_DIR: Path = DATA_DIR / "chroma"

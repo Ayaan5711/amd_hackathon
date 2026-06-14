@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="aegis.css">
 </head>
 <body>
     <div id="app">
@@ -36,9 +37,9 @@
                 </div>
                 <span class="brand-text">PulseIQ</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <a class="nav-btn" style="text-decoration: none;" href="index.html">&larr; Aegis Governance</a>
-                <button id="new-session-btn" class="nav-btn" style="display: none;">
+            <div class="nav-actions">
+                <a class="nav-btn nav-link" href="index.html">&larr; Aegis Governance</a>
+                <button id="new-run-btn" class="nav-btn" style="display: none;">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -54,7 +55,7 @@
                 <div class="upload-container">
                     <div class="upload-header">
                         <h1 class="title">Analyze Your Survey Data</h1>
-                        <p class="subtitle">Upload a CSV file and let AI uncover insights, trends, and recommendations</p>
+                        <p class="subtitle">Upload a survey CSV and get a full dashboard, multi-section report, and a chatbot that can answer questions about every part of your data.</p>
                     </div>
 
                     <div class="upload-zone" id="upload-zone">
@@ -72,7 +73,7 @@
                                     <path d="M40 24v32M24 40h32" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
                                 </svg>
                             </div>
-                            <h3 class="upload-title">Drop your CSV file here</h3>
+                            <h3 class="upload-title">Drop your survey CSV here</h3>
                             <p class="upload-text">or <span class="upload-link">click to browse</span></p>
                             <div class="upload-specs">
                                 <span class="spec">UTF-8 format</span>
@@ -84,6 +85,9 @@
                         </div>
                     </div>
 
+                    <div class="demo-divider"><span>or</span></div>
+                    <button id="demo-btn" class="primary-btn">Load Demo Dataset</button>
+
                     <div id="upload-error" class="error-toast" style="display: none;">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="2"/>
@@ -94,82 +98,99 @@
                 </div>
             </section>
 
-            <!-- Chat View -->
-            <section id="chat-view" class="view chat-view" style="display: none;">
-                <!-- Data Badge -->
-                <div class="data-badge">
-                    <div class="file-info">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M9 2H5a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6l-4-4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 2v4h4M10 11H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        <span id="data-filename" class="filename"></span>
-                    </div>
-                    <div class="data-stats" id="data-stats"></div>
-                </div>
+            <!-- Progress View -->
+            <section id="progress-view" class="view progress-view" style="display: none;">
+                <div class="progress-container">
+                    <h2 class="progress-title">Analyzing your survey&hellip;</h2>
+                    <p class="progress-subtitle">Analyzing <strong id="progress-filename"></strong> &middot; <span id="progress-rowcount"></span> responses</p>
 
-                <!-- Chat Container -->
-                <div class="chat-container">
-                    <div id="messages" class="messages">
-                        <!-- Welcome Card -->
-                        <div class="welcome-card">
-                            <div class="welcome-icon">
-                                <svg viewBox="0 0 48 48" fill="none">
-                                    <defs>
-                                        <linearGradient id="welcomeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:#667eea"/>
-                                            <stop offset="100%" style="stop-color:#764ba2"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <circle cx="24" cy="24" r="22" fill="url(#welcomeGrad)" fill-opacity="0.1"/>
-                                    <path d="M24 14v20M14 24h20" stroke="url(#welcomeGrad)" stroke-width="2.5" stroke-linecap="round"/>
-                                </svg>
+                    <ul class="progress-steps" id="progress-steps">
+                        <li class="step" data-step="triage">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Triage</span>
+                                <span class="step-message" data-default="Scanning responses for PII &amp; statistical outliers&hellip;">Scanning responses for PII &amp; statistical outliers&hellip;</span>
                             </div>
-                            <h2 class="welcome-title">Ready to analyze</h2>
-                            <p class="welcome-text">Your survey data has been processed. Ask me anything about it.</p>
-                        </div>
+                        </li>
+                        <li class="step" data-step="orchestrator">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Orchestrator</span>
+                                <span class="step-message" data-default="Planning follow-up review for flagged responses&hellip;">Planning follow-up review for flagged responses&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="specialist_dispatch">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Insight Agent</span>
+                                <span class="step-message" data-default="Reviewing flagged responses for context&hellip;">Reviewing flagged responses for context&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="risk_scoring">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Scoring</span>
+                                <span class="step-message" data-default="Aggregating findings into per-response review scores&hellip;">Aggregating findings into per-response review scores&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="dashboard">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Dashboard</span>
+                                <span class="step-message" data-default="Building metric &amp; segment charts&hellip;">Building metric &amp; segment charts&hellip;</span>
+                            </div>
+                        </li>
+                        <li class="step" data-step="report">
+                            <span class="step-icon"></span>
+                            <div class="step-body">
+                                <span class="step-name">Report</span>
+                                <span class="step-message" data-default="Authoring segment, trend, theme &amp; recommendation sections&hellip;">Authoring segment, trend, theme &amp; recommendation sections&hellip;</span>
+                            </div>
+                        </li>
+                    </ul>
 
-                        <!-- Suggestion Chips -->
-                        <div class="suggestion-chips">
-                            <button class="chip" data-query="Which department has the highest satisfaction?">
-                                <span class="chip-icon"></span>
-                                Compare departments
-                            </button>
-                            <button class="chip" data-query="Show me NPS trends by quarter">
-                                <span class="chip-icon"></span>
-                                View trends
-                            </button>
-                            <button class="chip" data-query="What are the main themes in comments?">
-                                <span class="chip-icon"></span>
-                                Extract themes
-                            </button>
-                            <button class="chip" data-query="Are there any outliers in the data?">
-                                <span class="chip-icon"></span>
-                                Find anomalies
-                            </button>
-                            <button class="chip" data-query="What actions should we take?">
-                                <span class="chip-icon"></span>
-                                Get recommendations
-                            </button>
-                        </div>
+                    <div id="progress-error" class="error-toast" style="display: none;"></div>
+                </div>
+            </section>
+
+            <!-- Results View -->
+            <section id="results-view" class="view results-view" style="display: none;">
+                <div class="results-container">
+                    <div class="metrics-strip" id="metrics-strip"></div>
+
+                    <div class="results-tabs">
+                        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                        <button class="tab-btn" data-tab="report">Report</button>
+                        <button class="tab-btn" data-tab="chat">Chat</button>
                     </div>
 
-                    <!-- Input Area -->
-                    <div class="input-container">
-                        <div class="input-box">
-                            <textarea
-                                id="message-input"
-                                class="message-input"
-                                placeholder="Ask about your survey data..."
-                                rows="1"
-                            ></textarea>
-                            <button id="send-btn" class="send-btn" disabled>
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
+                    <div class="tab-panel" id="tab-dashboard"></div>
+
+                    <div class="tab-panel" id="tab-report" style="display: none;">
+                        <div class="report-tabs" id="report-tabs"></div>
+                        <div class="report-content" id="report-content"></div>
+                    </div>
+
+                    <div class="tab-panel" id="tab-chat" style="display: none;">
+                        <div class="chat-tab-container">
+                            <div id="chat-messages" class="messages"></div>
+                            <div class="input-container">
+                                <div class="input-box">
+                                    <textarea
+                                        id="chat-input"
+                                        class="message-input"
+                                        placeholder="Ask about your survey data..."
+                                        rows="1"
+                                    ></textarea>
+                                    <button id="chat-send-btn" class="send-btn">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="input-hint">Press Enter to send &middot; Shift+Enter for new line</p>
+                            </div>
                         </div>
-                        <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
                     </div>
                 </div>
             </section>
@@ -183,11 +204,11 @@
                     <div class="spinner-ring"></div>
                     <div class="spinner-ring"></div>
                 </div>
-                <p class="loading-text" id="loading-text">Processing your data...</p>
+                <p class="loading-text" id="loading-text">Processing...</p>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="survey.js"></script>
 </body>
 </html>

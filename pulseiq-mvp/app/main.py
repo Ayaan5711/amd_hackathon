@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.governance_routes import router as governance_router
 from app.api.routes import router as api_router
+from app.api.survey_routes import router as survey_router
 from app.config import HOST, LOG_LEVEL, PORT
 from app.session.store import get_session_store
 
@@ -64,6 +65,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(api_router, prefix="/api")
 app.include_router(governance_router, prefix="/api")
+app.include_router(survey_router, prefix="/api")
 
 # Mount static files (frontend)
 try:

@@ -1,9 +1,9 @@
-"""FastAPI routes for the Governance ("Aegis") pack.
+"""FastAPI routes for the Survey Analytics pack.
 
-Additive to app/api/routes.py (the original Survey-pack routes, mounted at
-/api): this router is mounted at /api/governance and covers the
-upload -> investigate -> [stream progress] -> dashboard/report/chat/metrics
-flow for the audit-log investigation pipeline.
+Mirrors `app/api/governance_routes.py`'s upload -> investigate ->
+[stream progress] -> dashboard/report/chat/metrics flow, but mounted at
+/api/survey and wired to `SURVEY_PACK` (survey CSV upload, no required
+columns, survey-flavored dashboard/report/chat).
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ import asyncio
 import logging
 from typing import Any
 
-import pandas as pd
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
@@ -22,38 +21,37 @@ from app.api.governance_schemas import (
     GovernanceChatResponse,
     InvestigateResponse,
     InvestigationStatusResponse,
-    LogUploadResponse,
 )
 from app.api.investigation_common import (
     get_run_or_404,
     run_investigation_task,
     stream_investigation,
 )
-from app.config import SYNTHETIC_LOGS_DIR
-from app.packs.governance import GOVERNANCE_PACK
+from app.api.survey_schemas import SurveyUploadResponse
+from app.config import SURVEY_DEMO_PATH
+from app.packs.survey import SURVEY_PACK
 from app.session.run_store import get_run_store
 from app.session.store import get_session_store
-from app.utils.csv_loader import load_log_batch
+from app.utils.csv_loader import load_csv
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/governance", tags=["governance"])
+router = APIRouter(prefix="/survey", tags=["survey"])
 
 
-def _upload_response(session_id: str, filename: str, df: pd.DataFrame, schema: dict[str, Any]) -> LogUploadResponse:
-    return LogUploadResponse(
+def _upload_response(session_id: str, filename: str, df: Any, schema: dict[str, Any]) -> SurveyUploadResponse:
+    return SurveyUploadResponse(
         session_id=session_id,
         filename=filename,
         row_count=len(df),
-        columns=schema["columns"],
-        has_retrieved_context=schema["has_retrieved_context"],
-        message="Log batch uploaded successfully. Start an investigation to analyze it.",
+        columns=list(schema.keys()),
+        message="Survey data uploaded successfully. Start an investigation to analyze it.",
     )
 
 
-@router.post("/upload", response_model=LogUploadResponse)
-async def upload_log_batch(file: UploadFile = File(...)) -> LogUploadResponse:
-    """Upload an AI-interaction log batch (CSV or JSON) for investigation."""
-    logger.info(f"Governance upload request: {file.filename}")
+@router.post("/upload", response_model=SurveyUploadResponse)
+async def upload_survey(file: UploadFile = File(...)) -> SurveyUploadResponse:
+    """Upload a survey CSV for analysis."""
+    logger.info(f"Survey upload request: {file.filename}")
 
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
@@ -63,51 +61,50 @@ async def upload_log_batch(file: UploadFile = File(...)) -> LogUploadResponse:
         if len(contents) == 0:
             raise HTTPException(status_code=400, detail="File is empty")
 
-        df, schema = load_log_batch(contents, file.filename)
+        df, schema = load_csv(contents, file.filename)
 
         session_store = get_session_store()
         session_id = session_store.create(df=df, schema=schema, filename=file.filename)
 
-        logger.info(f"Governance upload successful: {session_id} ({len(df)} entries)")
+        logger.info(f"Survey upload successful: {session_id} ({len(df)} rows)")
         return _upload_response(session_id, file.filename, df, schema)
 
     except ValueError as e:
-        logger.warning(f"Governance upload validation error: {e}")
+        logger.warning(f"Survey upload validation error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Governance upload error: {e}")
+        logger.error(f"Survey upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process file: {str(e)}")
 
 
-@router.post("/demo", response_model=LogUploadResponse)
-async def load_demo_dataset() -> LogUploadResponse:
-    """Load the seeded synthetic log dataset (no upload required)."""
-    demo_path = SYNTHETIC_LOGS_DIR / "logs.csv"
-    if not demo_path.exists():
+@router.post("/demo", response_model=SurveyUploadResponse)
+async def load_demo_dataset() -> SurveyUploadResponse:
+    """Load the seeded synthetic survey dataset (no upload required)."""
+    if not SURVEY_DEMO_PATH.exists():
         raise HTTPException(status_code=404, detail="Demo dataset not found on server")
 
-    contents = demo_path.read_bytes()
-    df, schema = load_log_batch(contents, "logs.csv")
+    contents = SURVEY_DEMO_PATH.read_bytes()
+    df, schema = load_csv(contents, SURVEY_DEMO_PATH.name)
 
     session_store = get_session_store()
-    session_id = session_store.create(df=df, schema=schema, filename="logs.csv (demo)")
+    session_id = session_store.create(df=df, schema=schema, filename=f"{SURVEY_DEMO_PATH.name} (demo)")
 
-    logger.info(f"Demo dataset loaded: {session_id} ({len(df)} entries)")
-    return _upload_response(session_id, "logs.csv (demo)", df, schema)
+    logger.info(f"Survey demo dataset loaded: {session_id} ({len(df)} rows)")
+    return _upload_response(session_id, f"{SURVEY_DEMO_PATH.name} (demo)", df, schema)
 
 
 @router.post("/investigate/{session_id}", response_model=InvestigateResponse)
 async def investigate(session_id: str) -> InvestigateResponse:
-    """Kick off an investigation run for an uploaded log batch."""
+    """Kick off an investigation run for an uploaded survey."""
     session_store = get_session_store()
     session = session_store.get(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Session not found or expired. Please upload your log batch again.")
+        raise HTTPException(status_code=404, detail="Session not found or expired. Please upload your survey again.")
 
     run_store = get_run_store()
-    run_id = run_store.create(session_id=session_id, pack_name=GOVERNANCE_PACK.name)
+    run_id = run_store.create(session_id=session_id, pack_name=SURVEY_PACK.name)
 
-    asyncio.create_task(run_investigation_task(run_id, session.df, GOVERNANCE_PACK))
+    asyncio.create_task(run_investigation_task(run_id, session.df, SURVEY_PACK))
 
     return InvestigateResponse(run_id=run_id, session_id=session_id, status="running")
 
@@ -163,7 +160,7 @@ async def get_metrics(run_id: str) -> dict[str, Any]:
 
 
 @router.post("/chat/{run_id}", response_model=GovernanceChatResponse)
-async def governance_chat(run_id: str, request: GovernanceChatRequest) -> GovernanceChatResponse:
+async def survey_chat(run_id: str, request: GovernanceChatRequest) -> GovernanceChatResponse:
     """Talk to the results of a completed investigation run."""
     run = get_run_or_404(run_id)
     if run.status == "running":
@@ -175,14 +172,14 @@ async def governance_chat(run_id: str, request: GovernanceChatRequest) -> Govern
     run_store = get_run_store()
     try:
         result = await invoke_governance_chat(
-            GOVERNANCE_PACK,
+            SURVEY_PACK,
             run.result,
             session_id=run_id,
             user_message=request.message,
             history=run.chat_history,
         )
     except Exception as e:
-        logger.error(f"Governance chat error: {e}")
+        logger.error(f"Survey chat error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
 
     run_store.append_chat_history(run_id, "user", request.message)

@@ -1,0 +1,113 @@
+Employee_ID,Department,Quarter,Satisfaction_Score,NPS,Engagement_Score,Comments,Manager_Rating,Years_At_Company,Gender,Age_Band,City,Outlook_General,Outlook_Food_Prices
+EMP0001,Sales,Q1,4,9,4,Please follow up with me directly at jordan.taylor92@gmail.com about the schedule change.,4,9,Male,35-44,Kolkata,More than current,More than current
+EMP0002,Sales,Q1,4,8,3,I really enjoy the supportive team this quarter - the new tools have been great.,4,2,Female,35-44,Delhi,More than current,Similar to current
+EMP0003,Sales,Q1,4,8,4,Great team environment - I feel appreciated and well supported.,4,3,Female,35-44,Delhi,Less than current,More than current
+EMP0004,Sales,Q1,4,7,4,Communication has improved a lot and things feel a lot smoother now.,4,1,Female,25-34,Delhi,Less than current,Similar to current
+EMP0005,Sales,Q1,4,9,4,I really enjoy the supportive team this quarter - the new tools have been great.,5,2,Female,25-34,Kolkata,Less than current,More than current
+EMP0006,Sales,Q1,5,9,4,"Happy with the new project assignments, the extra support has helped a ton.",4,8,Male,55+,Guwahati,More than current,Similar to current
+EMP0007,Sales,Q1,4,10,3,The onboarding process was smooth and my manager has been really helpful.,4,8,Male,18-24,Mumbai,Similar to current,More than current
+EMP0008,Sales,Q2,3,4,4,"Nothing major to report this quarter, things are about the same as before.",4,5,Female,45-54,Mumbai,No change,Similar to current
+EMP0009,Sales,Q2,3,6,3,"The training sessions were okay, would be nice to have more hands-on practice.",4,7,Male,45-54,Guwahati,More than current,More than current
+EMP0010,Sales,Q2,4,4,3,The onboarding process was smooth and my manager has been really helpful.,4,6,Female,25-34,Guwahati,More than current,More than current
+EMP0011,Sales,Q2,4,7,3,"Happy with the new project assignments, the extra support has helped a ton.",3,1,Male,25-34,Delhi,More than current,More than current
+EMP0012,Sales,Q2,3,6,3,"Nothing major to report this quarter, things are about the same as before.",3,9,Male,25-34,Guwahati,Similar to current,More than current
+EMP0013,Sales,Q2,4,6,4,"Happy with the new project assignments, the extra support has helped a ton.",4,2,Male,18-24,Guwahati,More than current,More than current
+EMP0014,Sales,Q2,4,7,2,Communication has improved a lot and things feel a lot smoother now.,3,10,Male,18-24,Kolkata,Decline,Similar to current
+EMP0015,Sales,Q3,3,5,3,"The training sessions were okay, would be nice to have more hands-on practice.",2,8,Female,18-24,Guwahati,Decline,More than current
+EMP0016,Sales,Q3,2,2,3,The new process is confusing and the documentation is lacking.,3,2,Female,18-24,Mumbai,More than current,Less than current
+EMP0017,Sales,Q3,2,4,2,Our tools are outdated and it's frustrating to get basic tasks done.,2,4,Female,45-54,Bengaluru,More than current,Similar to current
+EMP0018,Sales,Q3,3,0,3,"Workload has been steady, no major changes to report this quarter.",2,4,Female,55+,Mumbai,No change,Decline
+EMP0019,Sales,Q3,3,4,2,"Nothing major to report this quarter, things are about the same as before.",3,8,Female,55+,Kolkata,Similar to current,Less than current
+EMP0020,Sales,Q3,3,3,2,"Still getting used to the new process, seems fine so far.",4,4,Male,18-24,Bengaluru,More than current,No change
+EMP0021,Sales,Q3,2,4,3,The new process is confusing and the documentation is lacking.,3,3,Male,35-44,Delhi,Similar to current,Similar to current
+EMP0022,Sales,Q4,3,2,2,"The training sessions were okay, would be nice to have more hands-on practice.",3,3,Male,45-54,Bengaluru,More than current,Less than current
+EMP0023,Sales,Q4,1,3,2,"Feeling unhappy with the workload, it's been a really tough and stressful stretch.",2,5,Male,25-34,Bengaluru,More than current,Similar to current
+EMP0024,Sales,Q4,3,4,2,"The training sessions were okay, would be nice to have more hands-on practice.",3,10,Female,25-34,Bengaluru,No change,More than current
+EMP0025,Sales,Q4,2,2,2,The workload has been really tight and I'm feeling pretty stressed most weeks.,3,1,Female,18-24,Guwahati,Similar to current,More than current
+EMP0026,Sales,Q4,2,3,1,I have concerns about career growth - the path forward needs more clarity.,2,2,Female,18-24,Guwahati,More than current,More than current
+EMP0027,Sales,Q4,1,1,2,"Feeling unhappy with the workload, it's been a really tough and stressful stretch.",2,10,Female,35-44,Guwahati,More than current,More than current
+EMP0028,Sales,Q4,1,2,2,I have concerns about career growth - the path forward needs more clarity.,1,5,Female,45-54,Guwahati,Similar to current,More than current
+EMP0029,Marketing,Q1,4,9,4,Management has been very helpful and the workload feels manageable lately.,5,5,Female,45-54,Guwahati,Less than current,More than current
+EMP0030,Marketing,Q1,4,9,3,Communication has improved a lot and things feel a lot smoother now.,5,2,Male,25-34,Kolkata,Less than current,More than current
+EMP0031,Marketing,Q1,5,8,4,I love the flexible schedule and the training program has been excellent.,5,2,Female,18-24,Delhi,Similar to current,More than current
+EMP0032,Marketing,Q1,4,8,5,I love the flexible schedule and the training program has been excellent.,4,4,Female,18-24,Mumbai,More than current,Less than current
+EMP0033,Marketing,Q1,4,6,5,I love the flexible schedule and the training program has been excellent.,4,5,Male,25-34,Delhi,More than current,Similar to current
+EMP0034,Marketing,Q1,5,9,4,"Happy with the new project assignments, the extra support has helped a ton.",4,1,Female,45-54,Guwahati,No change,More than current
+EMP0035,Marketing,Q1,4,9,5,I love the flexible schedule and the training program has been excellent.,4,5,Female,18-24,Bengaluru,No change,Decline
+EMP0036,Marketing,Q2,1,0,1,This has been one of the worst quarters - morale is low and support is poor.,1,4,Male,25-34,Guwahati,More than current,More than current
+EMP0037,Marketing,Q2,5,9,3,Communication has improved a lot and things feel a lot smoother now.,4,9,Male,55+,Guwahati,Less than current,More than current
+EMP0038,Marketing,Q2,3,8,5,"Still getting used to the new process, seems fine so far.",4,4,Female,25-34,Bengaluru,Less than current,Similar to current
+EMP0039,Marketing,Q2,5,8,4,I love the flexible schedule and the training program has been excellent.,4,5,Male,18-24,Bengaluru,More than current,Similar to current
+EMP0040,Marketing,Q2,4,8,5,Management has been very helpful and the workload feels manageable lately.,5,5,Male,18-24,Kolkata,Decline,Similar to current
+EMP0041,Marketing,Q2,5,9,4,I really enjoy the supportive team this quarter - the new tools have been great.,5,6,Male,25-34,Delhi,More than current,Similar to current
+EMP0042,Marketing,Q2,5,10,5,"Happy with the new project assignments, the extra support has helped a ton.",5,7,Male,25-34,Guwahati,More than current,More than current
+EMP0043,Marketing,Q3,5,10,4,"Happy with the new project assignments, the extra support has helped a ton.",4,6,Female,25-34,Mumbai,Similar to current,More than current
+EMP0044,Marketing,Q3,5,6,4,"Happy with the new project assignments, the extra support has helped a ton.",4,9,Male,25-34,Delhi,Less than current,No change
+EMP0045,Marketing,Q3,4,6,4,Communication has improved a lot and things feel a lot smoother now.,3,4,Male,18-24,Delhi,No change,Similar to current
+EMP0046,Marketing,Q3,4,8,4,I really enjoy the supportive team this quarter - the new tools have been great.,4,8,Male,25-34,Guwahati,No change,Less than current
+EMP0047,Marketing,Q3,4,8,4,Communication has improved a lot and things feel a lot smoother now.,4,2,Female,18-24,Bengaluru,More than current,Similar to current
+EMP0048,Marketing,Q3,4,8,3,The onboarding process was smooth and my manager has been really helpful.,4,1,Female,35-44,Guwahati,More than current,More than current
+EMP0049,Marketing,Q3,4,7,5,Great team environment - I feel appreciated and well supported.,5,8,Male,35-44,Bengaluru,Similar to current,More than current
+EMP0050,Marketing,Q4,4,10,4,"Happy with the new project assignments, the extra support has helped a ton.",3,9,Male,55+,Kolkata,More than current,Similar to current
+EMP0051,Marketing,Q4,3,8,5,"Workload has been steady, no major changes to report this quarter.",4,4,Male,18-24,Bengaluru,More than current,Similar to current
+EMP0052,Marketing,Q4,5,7,4,The onboarding process was smooth and my manager has been really helpful.,5,8,Male,18-24,Kolkata,Similar to current,Similar to current
+EMP0053,Marketing,Q4,5,9,4,I really enjoy the supportive team this quarter - the new tools have been great.,5,1,Male,25-34,Mumbai,No change,More than current
+EMP0054,Marketing,Q4,5,8,4,I really enjoy the supportive team this quarter - the new tools have been great.,5,10,Male,55+,Bengaluru,Less than current,More than current
+EMP0055,Marketing,Q4,5,8,5,I really enjoy the supportive team this quarter - the new tools have been great.,4,5,Male,25-34,Bengaluru,Similar to current,Similar to current
+EMP0056,Marketing,Q4,5,7,5,Management has been very helpful and the workload feels manageable lately.,4,9,Male,18-24,Kolkata,More than current,Similar to current
+EMP0057,Engineering,Q1,4,6,5,The onboarding process was smooth and my manager has been really helpful.,4,3,Male,25-34,Mumbai,More than current,Less than current
+EMP0058,Engineering,Q1,4,9,4,Great team environment - I feel appreciated and well supported.,5,7,Male,35-44,Guwahati,More than current,Similar to current
+EMP0059,Engineering,Q1,4,10,4,I love the flexible schedule and the training program has been excellent.,4,3,Female,18-24,Guwahati,Similar to current,More than current
+EMP0060,Engineering,Q1,4,9,4,Communication has improved a lot and things feel a lot smoother now.,3,7,Male,35-44,Guwahati,More than current,Similar to current
+EMP0061,Engineering,Q1,4,10,4,I love the flexible schedule and the training program has been excellent.,4,4,Male,45-54,Mumbai,Similar to current,Similar to current
+EMP0062,Engineering,Q1,4,5,4,Great team environment - I feel appreciated and well supported.,4,8,Female,25-34,Guwahati,No change,Less than current
+EMP0063,Engineering,Q1,5,4,4,"Happy with the new project assignments, the extra support has helped a ton.",4,3,Male,55+,Guwahati,Less than current,Similar to current
+EMP0064,Engineering,Q2,4,6,4,I love the flexible schedule and the training program has been excellent.,4,3,Male,55+,Delhi,More than current,More than current
+EMP0065,Engineering,Q2,3,7,4,"Nothing major to report this quarter, things are about the same as before.",4,5,Female,35-44,Mumbai,More than current,Similar to current
+EMP0066,Engineering,Q2,2,6,4,Our tools are outdated and it's frustrating to get basic tasks done.,4,4,Male,18-24,Mumbai,No change,Less than current
+EMP0067,Engineering,Q2,4,7,4,I love the flexible schedule and the training program has been excellent.,4,2,Male,35-44,Kolkata,More than current,More than current
+EMP0068,Engineering,Q2,4,6,4,"Happy with the new project assignments, the extra support has helped a ton.",4,5,Female,25-34,Guwahati,Decline,More than current
+EMP0069,Engineering,Q2,4,8,4,The onboarding process was smooth and my manager has been really helpful.,5,2,Female,25-34,Guwahati,More than current,More than current
+EMP0070,Engineering,Q2,5,8,4,The onboarding process was smooth and my manager has been really helpful.,4,1,Female,18-24,Guwahati,More than current,More than current
+EMP0071,Engineering,Q3,1,0,1,"Feeling unhappy with the workload, it's been a really tough and stressful stretch.",1,6,Male,35-44,Delhi,More than current,More than current
+EMP0072,Engineering,Q3,3,8,4,"The training sessions were okay, would be nice to have more hands-on practice.",4,1,Male,18-24,Mumbai,Less than current,Similar to current
+EMP0073,Engineering,Q3,3,8,3,"Workload has been steady, no major changes to report this quarter.",5,2,Male,25-34,Mumbai,No change,More than current
+EMP0074,Engineering,Q3,4,5,3,The onboarding process was smooth and my manager has been really helpful.,4,7,Male,18-24,Guwahati,No change,More than current
+EMP0075,Engineering,Q3,4,7,3,The onboarding process was smooth and my manager has been really helpful.,4,10,Male,35-44,Bengaluru,No change,More than current
+EMP0076,Engineering,Q3,4,4,3,"Happy with the new project assignments, the extra support has helped a ton.",3,1,Female,18-24,Bengaluru,Similar to current,Less than current
+EMP0077,Engineering,Q3,4,8,3,Management has been very helpful and the workload feels manageable lately.,4,3,Male,55+,Mumbai,Similar to current,More than current
+EMP0078,Engineering,Q4,4,8,3,Communication has improved a lot and things feel a lot smoother now.,5,2,Female,25-34,Guwahati,Similar to current,More than current
+EMP0079,Engineering,Q4,4,7,5,Communication has improved a lot and things feel a lot smoother now.,4,2,Male,18-24,Guwahati,More than current,Similar to current
+EMP0080,Engineering,Q4,4,8,3,I love the flexible schedule and the training program has been excellent.,4,4,Female,45-54,Bengaluru,More than current,No change
+EMP0081,Engineering,Q4,4,8,4,I love the flexible schedule and the training program has been excellent.,4,8,Male,18-24,Guwahati,Less than current,More than current
+EMP0082,Engineering,Q4,4,8,4,"Happy with the new project assignments, the extra support has helped a ton.",5,2,Female,55+,Guwahati,Similar to current,Similar to current
+EMP0083,Engineering,Q4,4,8,4,"Happy with the new project assignments, the extra support has helped a ton.",4,1,Male,55+,Delhi,No change,Similar to current
+EMP0084,Engineering,Q4,4,9,4,Management has been very helpful and the workload feels manageable lately.,3,1,Male,35-44,Delhi,More than current,Similar to current
+EMP0085,HR,Q1,5,9,5,I really enjoy the supportive team this quarter - the new tools have been great.,4,4,Female,45-54,Mumbai,Similar to current,Similar to current
+EMP0086,HR,Q1,4,10,4,Communication has improved a lot and things feel a lot smoother now.,4,2,Female,35-44,Guwahati,Similar to current,More than current
+EMP0087,HR,Q1,4,6,4,"Happy with the new project assignments, the extra support has helped a ton.",5,1,Male,35-44,Mumbai,More than current,No change
+EMP0088,HR,Q1,4,8,4,I love the flexible schedule and the training program has been excellent.,4,1,Male,18-24,Guwahati,More than current,More than current
+EMP0089,HR,Q1,4,8,5,I love the flexible schedule and the training program has been excellent.,4,7,Male,35-44,Mumbai,More than current,More than current
+EMP0090,HR,Q1,4,8,4,Great team environment - I feel appreciated and well supported.,4,4,Male,45-54,Guwahati,No change,More than current
+EMP0091,HR,Q1,5,7,5,Communication has improved a lot and things feel a lot smoother now.,4,3,Female,45-54,Delhi,Similar to current,More than current
+EMP0092,HR,Q2,4,8,4,Great team environment - I feel appreciated and well supported.,5,7,Male,18-24,Kolkata,Less than current,More than current
+EMP0093,HR,Q2,5,6,4,Great team environment - I feel appreciated and well supported.,4,7,Female,35-44,Delhi,Similar to current,Similar to current
+EMP0094,HR,Q2,4,9,4,"Happy with the new project assignments, the extra support has helped a ton.",5,3,Male,35-44,Delhi,More than current,Less than current
+EMP0095,HR,Q2,5,6,4,I really enjoy the supportive team this quarter - the new tools have been great.,4,2,Male,25-34,Guwahati,More than current,More than current
+EMP0096,HR,Q2,4,8,4,I really enjoy the supportive team this quarter - the new tools have been great.,4,9,Male,45-54,Kolkata,Similar to current,Less than current
+EMP0097,HR,Q2,5,5,4,The onboarding process was smooth and my manager has been really helpful.,3,4,Male,45-54,Mumbai,Less than current,Less than current
+EMP0098,HR,Q2,4,5,5,Great team environment - I feel appreciated and well supported.,4,5,Male,45-54,Mumbai,Less than current,More than current
+EMP0099,HR,Q3,5,7,3,You can reach me at (415) 555-0148 if you'd like to discuss this further.,4,4,Male,18-24,Guwahati,More than current,No change
+EMP0100,HR,Q3,4,8,4,The onboarding process was smooth and my manager has been really helpful.,4,9,Male,45-54,Kolkata,More than current,Similar to current
+EMP0101,HR,Q3,4,7,5,I love the flexible schedule and the training program has been excellent.,4,7,Female,25-34,Mumbai,Similar to current,More than current
+EMP0102,HR,Q3,4,6,4,The onboarding process was smooth and my manager has been really helpful.,5,1,Male,25-34,Mumbai,No change,No change
+EMP0103,HR,Q3,5,6,4,Management has been very helpful and the workload feels manageable lately.,4,5,Female,25-34,Delhi,No change,More than current
+EMP0104,HR,Q3,4,7,5,Management has been very helpful and the workload feels manageable lately.,4,5,Male,25-34,Guwahati,More than current,More than current
+EMP0105,HR,Q3,3,9,4,"Workload has been steady, no major changes to report this quarter.",4,4,Female,25-34,Guwahati,More than current,More than current
+EMP0106,HR,Q4,4,8,5,Communication has improved a lot and things feel a lot smoother now.,4,9,Female,35-44,Delhi,Similar to current,Similar to current
+EMP0107,HR,Q4,4,10,5,The onboarding process was smooth and my manager has been really helpful.,4,7,Male,18-24,Kolkata,More than current,Similar to current
+EMP0108,HR,Q4,4,7,4,The onboarding process was smooth and my manager has been really helpful.,5,9,Female,25-34,Delhi,Similar to current,More than current
+EMP0109,HR,Q4,5,8,4,Management has been very helpful and the workload feels manageable lately.,3,1,Male,25-34,Kolkata,More than current,Less than current
+EMP0110,HR,Q4,4,8,4,The onboarding process was smooth and my manager has been really helpful.,4,6,Female,55+,Kolkata,More than current,More than current
+EMP0111,HR,Q4,4,7,4,Management has been very helpful and the workload feels manageable lately.,4,5,Male,55+,Kolkata,More than current,Similar to current
+EMP0112,HR,Q4,4,8,4,The onboarding process was smooth and my manager has been really helpful.,3,6,Male,25-34,Delhi,More than current,No change
