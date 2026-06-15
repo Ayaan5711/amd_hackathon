@@ -75,7 +75,7 @@
 
 .path-card:hover {
     border-color: var(--border-focus);
-    background: rgba(26, 26, 37, 0.9);
+    background: rgba(32, 27, 20, 0.9);
     transform: translateY(-4px);
     box-shadow: var(--shadow-glow);
 }
@@ -214,7 +214,7 @@
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #0a0a0f;
+    color: #0c0a08;
 }
 
 .step.active .step-icon {
@@ -232,8 +232,8 @@
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(102, 126, 234, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
 }
 
 .step-body {
@@ -559,10 +559,10 @@
     letter-spacing: 0.04em;
 }
 
-.badge-low { background: #4ade80; color: #0a0a0f; }
-.badge-medium { background: #facc15; color: #0a0a0f; }
-.badge-high { background: #fb923c; color: #0a0a0f; }
-.badge-critical { background: #f87171; color: #0a0a0f; }
+.badge-low { background: #4ade80; color: #0c0a08; }
+.badge-medium { background: #facc15; color: #0c0a08; }
+.badge-high { background: #fb923c; color: #0c0a08; }
+.badge-critical { background: #f87171; color: #0c0a08; }
 
 .overall-score {
     text-align: center;
@@ -662,7 +662,7 @@
 }
 
 .report-tab-btn.active {
-    background: rgba(102, 126, 234, 0.15);
+    background: rgba(245, 158, 11, 0.15);
     border-color: var(--primary-start);
     color: var(--text-primary);
 }

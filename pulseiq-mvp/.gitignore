@@ -15,3 +15,4 @@ venv/
 app/data/chroma/
 
 docs
+.*
